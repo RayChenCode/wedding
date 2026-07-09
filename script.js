@@ -45,6 +45,7 @@ document.querySelectorAll("[data-config-src]").forEach((node) => {
 });
 
 const COPY_FEEDBACK_MS = 1800;
+const LEGACY_FALLBACK_DELAY_MS = 8000;
 const isAppleDevice = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
 
 if (isAppleDevice) {
@@ -319,13 +320,16 @@ function submitWithIframe(formData) {
       }
     };
 
+    // The iframe firing `load` only proves Google answered, not that the row was
+    // written. Wait long enough for the real postMessage (~3.5s observed) to win;
+    // only assume success if it never arrives.
     const onLegacyLoad = () => {
       if (!submitted) return;
       if (!SITE_CONFIG.legacyIframeLoadFallback) return;
       window.setTimeout(() => {
         cleanup();
         resolve({ ok: true, legacyFallback: true });
-      }, 700);
+      }, LEGACY_FALLBACK_DELAY_MS);
     };
 
     window.addEventListener("message", onMessage);
