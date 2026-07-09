@@ -1,3 +1,7 @@
 .DS_Store
 Thumbs.db
 .agents/
+test-results/
+__deploy_preview/
+__push_probe/
+.git-index-preview*
