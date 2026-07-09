@@ -128,12 +128,24 @@
         <p class="script-title">Getting there</p>
         <h2>交通與停車</h2>
         <div class="map-frame" aria-label="CHALET V Google Map">
+          <div class="map-fallback">
+            <p class="map-fallback__name">CHALET V</p>
+            <p class="map-fallback__address" data-config="venueAddress">104 臺北市中山區成功里植福路 8 號</p>
+            <p class="map-fallback__hint">若地圖未顯示，請使用下方導航按鈕。</p>
+          </div>
           <iframe
             title="CHALET V 地圖"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
-            src="https://www.google.com/maps?q=CHALET%20V%20104%E8%87%BA%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E6%88%90%E5%8A%9F%E9%87%8C%E6%A4%8D%E7%A6%8F%E8%B7%AF8%E8%99%9F&output=embed">
+            data-config-src="mapEmbedUrl"
+            src="https://www.google.com/maps?q=25.0837339,121.5550552&hl=zh-TW&z=17&output=embed">
           </iframe>
+        </div>
+
+        <div class="map-actions">
+          <a class="map-btn is-primary" data-nav="google" data-config-link="googleDirectionsUrl" href="#" target="_blank" rel="noreferrer">Google 導航</a>
+          <a class="map-btn" data-nav="apple" data-config-link="appleDirectionsUrl" href="#" target="_blank" rel="noreferrer">Apple 地圖</a>
+          <button class="map-btn" type="button" id="copy-address" data-copy="venueAddress">複製地址</button>
         </div>
         <div class="note-grid">
           <article>

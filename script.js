@@ -9,7 +9,11 @@ const SITE_CONFIG = {
   entranceNote: "入口於典華停車場後方木門處，抵達後請依現場指引入場。",
   parkingNote: "賓客可享典華停車場 4 小時免費停車；車位先到先停，停滿為主。婚禮桌上會提供停車折抵 QR code，請自行掃碼折抵。",
   transitNote: "搭乘捷運可由文湖線劍南路站或大直站一帶轉乘步行/計程車前往；自行開車請導航至植福路 8 號或典華停車場。",
-  mapUrl: "https://www.google.com/maps/search/?api=1&query=104%E8%87%BA%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E6%88%90%E5%8A%9F%E9%87%8C%E6%A4%8D%E7%A6%8F%E8%B7%AF8%E8%99%9F",
+  venueLatLng: "25.0837339,121.5550552",
+  mapUrl: "https://maps.app.goo.gl/ew2wu86Gp4oGTyzo9",
+  mapEmbedUrl: "https://www.google.com/maps?q=25.0837339,121.5550552&hl=zh-TW&z=17&output=embed",
+  googleDirectionsUrl: "https://www.google.com/maps/dir/?api=1&destination=25.0837339%2C121.5550552",
+  appleDirectionsUrl: "https://maps.apple.com/?daddr=25.0837339,121.5550552&dirflg=d",
   rsvpDeadline: "請於 2026/07/31 前完成回覆，方便我們安排座位與餐點。",
   legacyIframeLoadFallback: true
 };
@@ -34,6 +38,44 @@ document.querySelectorAll("[data-config-link]").forEach((node) => {
     node.setAttribute("aria-disabled", "true");
   }
 });
+
+document.querySelectorAll("[data-config-src]").forEach((node) => {
+  const key = node.dataset.configSrc;
+  if (SITE_CONFIG[key]) node.src = SITE_CONFIG[key];
+});
+
+const COPY_FEEDBACK_MS = 1800;
+const isAppleDevice = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+
+if (isAppleDevice) {
+  const google = document.querySelector('[data-nav="google"]');
+  const apple = document.querySelector('[data-nav="apple"]');
+  if (google && apple) {
+    google.classList.remove("is-primary");
+    apple.classList.add("is-primary");
+    apple.parentNode.insertBefore(apple, google);
+  }
+}
+
+const copyButton = document.getElementById("copy-address");
+
+if (copyButton) {
+  copyButton.addEventListener("click", async () => {
+    const address = SITE_CONFIG[copyButton.dataset.copy];
+    if (!address) return;
+
+    const original = copyButton.textContent;
+    try {
+      await navigator.clipboard.writeText(address);
+      copyButton.textContent = "已複製地址";
+    } catch (error) {
+      copyButton.textContent = "請長按地址複製";
+    }
+    window.setTimeout(() => {
+      copyButton.textContent = original;
+    }, COPY_FEEDBACK_MS);
+  });
+}
 
 const countdownIds = {
   days: document.getElementById("days"),

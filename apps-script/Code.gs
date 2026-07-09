@@ -193,6 +193,8 @@ function jsonResponse(payload) {
 function htmlResponse(payload) {
   const safeJson = JSON.stringify(Object.assign({ source: "ray-catherine-rsvp" }, payload)).replace(/</g, "\\u003c");
   return HtmlService
-    .createHtmlOutput("<!doctype html><meta charset=\"utf-8\"><script>window.parent.postMessage(" + safeJson + ", \"*\");</script>")
+    // Apps Script renders this inside a nested sandbox iframe, so `parent` is
+    // Google's wrapper page, not the host site. Post to both to reach the caller.
+    .createHtmlOutput("<!doctype html><meta charset=\"utf-8\"><script>var m=" + safeJson + ";try{window.top.postMessage(m,\"*\");}catch(e){}try{window.parent.postMessage(m,\"*\");}catch(e){}</script>")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
