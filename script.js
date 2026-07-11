@@ -86,7 +86,7 @@ function updateCountdown(now = new Date()) {
   }
 
   if (diff <= 0) {
-    title.textContent = "謝謝你的祝福";
+    title.textContent = "謝謝您的祝福";
     Object.values(countdownIds).forEach((node) => {
       node.textContent = "0";
     });
@@ -596,7 +596,7 @@ function validateForm() {
   }
 
   syncAttendancePlan();
-  if (!fieldValue("attendancePlan")) pushError("attendancePlan", "請選擇你的出席方式。");
+  if (!fieldValue("attendancePlan")) pushError("attendancePlan", "請選擇您的出席方式。");
 
   if (isAttendingAnyEvent()) {
     validateGuests(pushError);
@@ -846,7 +846,7 @@ form.addEventListener("submit", async (event) => {
     guestsInput.value = "1";
     renderGuestList();
     syncConditionalFields();
-    setStatus("已收到你的回覆 謝謝你");
+    setStatus("已收到您的回覆 謝謝您");
     // 動畫不擋住表單解鎖：票券飛完 2 秒後才把畫面帶到交通資訊
     flyTicketAway().then(() => {
       document.getElementById("traffic")?.scrollIntoView({ behavior: "smooth", block: "start" });
