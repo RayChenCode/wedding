@@ -558,7 +558,7 @@ function validateForm() {
   }
 
   syncAttendancePlan();
-  if (!fieldValue("attendancePlan")) pushError("attendancePlan", "請選擇出席安排。");
+  if (!fieldValue("attendancePlan")) pushError("attendancePlan", "請選擇你的出席方式。");
 
   if (isAttendingAnyEvent()) {
     validateGuests(pushError);
