@@ -294,6 +294,17 @@ h3 {
   visibility: visible;
 }
 
+/* 連拍：8 幀疊在同一格，逐幀顯示 */
+.hero-frame {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+
+.hero-frame.is-active {
+  visibility: visible;
+}
+
 .hero-base img,
 .hero-cut img {
   object-position: center 32%;
@@ -396,9 +407,13 @@ main {
   perspective: 1800px;
 }
 
+/*
+ * 公版框：比例固定（框不會跳、左右按鈕不會移位），
+ * 照片本身 contain 完整呈現絕不裁切，空掉的地方用同一張照片放大模糊當底，所以也不會有白邊。
+ */
 .album__stage {
   position: relative;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   transform-style: preserve-3d;
 }
 
@@ -426,10 +441,22 @@ main {
   transform: rotateY(-165deg);
 }
 
-/* 相簿照片完整呈現，不裁切 */
-.album__page img {
+/* 背景：同一張照片放大模糊，填滿框內空白 */
+.album__page-bg,
+.album__page-photo {
+  position: absolute;
+  inset: 0;
+}
+
+.album__page-bg img {
+  object-fit: cover;
+  transform: scale(1.25);
+  filter: blur(26px) saturate(1.1) brightness(0.92);
+}
+
+/* 前景：照片完整呈現，絕不裁切 */
+.album__page-photo img {
   object-fit: contain;
-  object-position: center;
 }
 
 .album__nav {

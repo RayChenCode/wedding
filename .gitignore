@@ -5,3 +5,5 @@ test-results/
 __deploy_preview/
 __push_probe/
 .git-index-preview*
+temp/
+gif_like/

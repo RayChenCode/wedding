@@ -43,7 +43,17 @@
         assert("hero title is above the photo", doc.querySelector(".hero__title").getBoundingClientRect().bottom <= doc.querySelector(".hero__carousel").getBoundingClientRect().top + 1);
         assert("no horizontal overflow mobile", doc.documentElement.scrollWidth <= doc.documentElement.clientWidth + 1);
 
-        assert("album renders 6 pages", doc.querySelectorAll(".album__page").length === 6);
+        assert("album renders 9 pages", doc.querySelectorAll(".album__page").length === 9);
+        assert("album nav buttons stay put across pages", (() => {
+          const nav = doc.querySelector("[data-album-next]");
+          const before = nav.getBoundingClientRect().top;
+          click(doc, "[data-album-next]");
+          click(doc, "[data-album-next]");
+          const after = nav.getBoundingClientRect().top;
+          click(doc, "[data-album-prev]");
+          click(doc, "[data-album-prev]");
+          return Math.abs(after - before) < 1;
+        })());
         assert("album prev is disabled on first page", doc.querySelector("[data-album-prev]").disabled);
         click(doc, "[data-album-next]");
         await wait(100);

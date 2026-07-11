@@ -104,8 +104,9 @@ updateCountdown();
 setInterval(updateCountdown, 1000);
 
 /**
- * 主視覺輪播：每張照片都有一張「去背人像」疊層，人像永遠在所有底圖之上。
- * 節奏：底圖 1 → 疊上人像 1 → 底圖 2 出現（人像 1 仍留著）→ 收掉人像 1，只剩底圖 2 → 疊上人像 2 → ...
+ * 主視覺輪播：
+ * 第一張是連拍（8 幀，每幀 0.3 秒播完才換下一張），其餘每張都有一層去背人像。
+ * 節奏：底圖 → 疊上人像 → 下一張底圖出現（人像仍留著）→ 收掉人像 → ...
  * 所有切換都是瞬間的，不做過場動畫（見 styles.css）。
  */
 const bases = [...document.querySelectorAll(".hero-base")];
@@ -115,28 +116,75 @@ const dots = [...document.querySelectorAll(".carousel-dots button")];
 const BASE_HOLD_MS = 480; // 只有底圖的停留時間
 const CUT_HOLD_MS = 640; // 底圖 + 自己的人像共存
 const OVERLAP_MS = 640; // 下一張底圖出現、上一張人像仍留著
+const FRAME_MS = 300; // 連拍每一幀的停留時間
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 let activeIndex = 0;
 let previousIndex = -1;
 let timer = null;
+let frameTimer = null;
+
+/** 有些底圖沒有對應的人像（例如連拍那張），用 data-slide 對應而不是位置。 */
+function cutForSlide(index) {
+  return cuts.find((cut) => Number(cut.dataset.slide) === index) || null;
+}
 
 function renderCarousel(cutIndex) {
   bases.forEach((base, index) => {
     base.classList.toggle("is-active", index === activeIndex);
     base.classList.toggle("is-prev", index === previousIndex);
   });
-  cuts.forEach((cut, index) => {
-    cut.classList.toggle("is-on", index === cutIndex);
+  const activeCut = cutIndex === null ? null : cutForSlide(cutIndex);
+  cuts.forEach((cut) => {
+    cut.classList.toggle("is-on", cut === activeCut);
   });
   dots.forEach((dot, index) => {
     dot.classList.toggle("is-active", index === activeIndex);
   });
 }
 
+/** 連拍：一幀一幀播完一輪，回傳整輪播完所需的時間。 */
+function playSequence(base) {
+  const frames = [...base.querySelectorAll(".hero-frame")];
+  clearInterval(frameTimer);
+  if (!frames.length) return 0;
+
+  let frameIndex = 0;
+  const show = () => {
+    frames.forEach((frame, index) => frame.classList.toggle("is-active", index === frameIndex));
+  };
+  show();
+
+  frameTimer = setInterval(() => {
+    frameIndex += 1;
+    if (frameIndex >= frames.length) {
+      clearInterval(frameTimer);
+      return;
+    }
+    show();
+  }, FRAME_MS);
+
+  return frames.length * FRAME_MS;
+}
+
 function runCycle() {
-  renderCarousel(activeIndex); // 疊上目前這張的人像
+  const base = bases[activeIndex];
+  const isSequence = base?.hasAttribute("data-sequence");
+
+  if (isSequence) {
+    const playbackMs = playSequence(base);
+    renderCarousel(null); // 連拍本身就是動態，不疊人像
+    timer = setTimeout(() => {
+      previousIndex = activeIndex;
+      activeIndex = (activeIndex + 1) % bases.length;
+      renderCarousel(null);
+      timer = setTimeout(runCycle, BASE_HOLD_MS);
+    }, playbackMs);
+    return;
+  }
+
+  renderCarousel(activeIndex); // 疊上這張的人像
 
   timer = setTimeout(() => {
     const holdingCut = activeIndex;
@@ -153,6 +201,7 @@ function runCycle() {
 
 function goToSlide(index) {
   clearTimeout(timer);
+  clearInterval(frameTimer);
   previousIndex = activeIndex;
   activeIndex = (index + bases.length) % bases.length;
   renderCarousel(null);
@@ -188,6 +237,7 @@ let albumIndex = 0;
 let swipeStartX = null;
 
 function renderAlbum() {
+  // 舞台比例跟著目前這張照片，橫拍直拍都能填滿又不出現白邊
   albumPages.forEach((page, index) => {
     page.classList.toggle("is-flipped", index < albumIndex);
     page.classList.toggle("is-active", index === albumIndex);

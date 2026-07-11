@@ -25,10 +25,40 @@
 
       <section class="hero__carousel" aria-label="婚紗照輪播" data-carousel>
         <div class="hero-bases">
-          <picture class="hero-base is-active">
-            <source srcset="assets/hero/hero-01.webp" type="image/webp">
-            <img src="assets/hero/hero-01.jpg" width="1800" height="1200" alt="Ray 與 Catherine 與伴郎伴娘在草地上開心奔跑" fetchpriority="high">
-          </picture>
+          <div class="hero-base hero-base--sequence is-active" data-sequence>
+            <picture class="hero-frame is-active">
+              <source srcset="assets/hero/seq/frame-01.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-01.jpg" width="1600" height="1067" alt="Ray 與 Catherine 的連拍畫面" fetchpriority="high">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-02.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-02.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-03.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-03.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-04.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-04.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-05.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-05.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-06.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-06.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-07.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-07.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+            <picture class="hero-frame">
+              <source srcset="assets/hero/seq/frame-08.webp" type="image/webp">
+              <img src="assets/hero/seq/frame-08.jpg" width="1600" height="1067" alt="" loading="lazy">
+            </picture>
+          </div>
           <picture class="hero-base">
             <source srcset="assets/hero/hero-02.webp" type="image/webp">
             <img src="assets/hero/hero-02.jpg" width="1800" height="1156" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
@@ -43,19 +73,15 @@
           </picture>
         </div>
         <div class="hero-cuts" aria-hidden="true">
-          <picture class="hero-cut">
-            <source srcset="assets/hero/hero-01-cut.webp" type="image/webp">
-            <img src="assets/hero/hero-01-cut.png" width="1800" height="1200" alt="" loading="lazy">
-          </picture>
-          <picture class="hero-cut">
+          <picture class="hero-cut" data-slide="1">
             <source srcset="assets/hero/hero-02-cut.webp" type="image/webp">
             <img src="assets/hero/hero-02-cut.png" width="1800" height="1156" alt="" loading="lazy">
           </picture>
-          <picture class="hero-cut">
+          <picture class="hero-cut" data-slide="2">
             <source srcset="assets/hero/hero-03-cut.webp" type="image/webp">
             <img src="assets/hero/hero-03-cut.png" width="1800" height="1108" alt="" loading="lazy">
           </picture>
-          <picture class="hero-cut">
+          <picture class="hero-cut" data-slide="3">
             <source srcset="assets/hero/hero-04-cut.webp" type="image/webp">
             <img src="assets/hero/hero-04-cut.png" width="1800" height="1139" alt="" loading="lazy">
           </picture>
@@ -93,39 +119,93 @@
         <button class="album__nav album__nav--prev" type="button" data-album-prev aria-label="上一張照片">‹</button>
         <div class="album__stage" data-album tabindex="0">
           <figure class="album__page is-active">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-02.webp" type="image/webp">
+              <img src="assets/photos/photo-02.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-02.webp" type="image/webp">
               <img src="assets/photos/photo-02.jpg" width="1467" height="2200" alt="Ray 與 Catherine 的海邊合影" loading="lazy">
             </picture>
           </figure>
           <figure class="album__page">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-10.webp" type="image/webp">
+              <img src="assets/photos/photo-10.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-10.webp" type="image/webp">
               <img src="assets/photos/photo-10.jpg" width="1467" height="2200" alt="Ray 與 Catherine 捧著花束大笑" loading="lazy">
             </picture>
           </figure>
           <figure class="album__page">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-04.webp" type="image/webp">
+              <img src="assets/photos/photo-04.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-04.webp" type="image/webp">
               <img src="assets/photos/photo-04.jpg" width="2200" height="1757" alt="Ray 與 Catherine 在彩帶中慶祝" loading="lazy">
             </picture>
           </figure>
           <figure class="album__page">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-03.webp" type="image/webp">
+              <img src="assets/photos/photo-03.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-03.webp" type="image/webp">
               <img src="assets/photos/photo-03.jpg" width="1467" height="2200" alt="新郎與新娘走在海灘上" loading="lazy">
             </picture>
           </figure>
           <figure class="album__page">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-05.webp" type="image/webp">
+              <img src="assets/photos/photo-05.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-05.webp" type="image/webp">
               <img src="assets/photos/photo-05.jpg" width="1467" height="2200" alt="Catherine 穿著婚紗站在林間" loading="lazy">
             </picture>
           </figure>
           <figure class="album__page">
-            <picture>
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-09.webp" type="image/webp">
+              <img src="assets/photos/photo-09.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
               <source srcset="assets/photos-webp/photo-09.webp" type="image/webp">
               <img src="assets/photos/photo-09.jpg" width="1467" height="2200" alt="Ray 在海邊單膝跪在 Catherine 身旁" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-11.webp" type="image/webp">
+              <img src="assets/photos/photo-11.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
+              <source srcset="assets/photos-webp/photo-11.webp" type="image/webp">
+              <img src="assets/photos/photo-11.jpg" width="1600" height="1067" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-12.webp" type="image/webp">
+              <img src="assets/photos/photo-12.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
+              <source srcset="assets/photos-webp/photo-12.webp" type="image/webp">
+              <img src="assets/photos/photo-12.jpg" width="1600" height="1067" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture class="album__page-bg" aria-hidden="true">
+              <source srcset="assets/photos-webp/photo-13.webp" type="image/webp">
+              <img src="assets/photos/photo-13.jpg" alt="" loading="lazy">
+            </picture>
+            <picture class="album__page-photo">
+              <source srcset="assets/photos-webp/photo-13.webp" type="image/webp">
+              <img src="assets/photos/photo-13.jpg" width="1600" height="2400" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
             </picture>
           </figure>
         </div>
