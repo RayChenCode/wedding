@@ -1,6 +1,7 @@
 const SPREADSHEET_ID = "1voXmpkEP9IWwU3OPWjYzK-gXRI6chlp-kQ7fReloNfE";
 const SHEET_NAME = "工作表1";
 const MAX_TEXT_LENGTH = 1000;
+const MAX_GUESTS = 10;
 
 const HEADERS = [
   "建立時間",
@@ -11,6 +12,7 @@ const HEADERS = [
   "出席人數",
   "飲食需求",
   "素食人數",
+  "同行賓客明細",
   "特殊飲食",
   "是否需要兒童椅",
   "兒童椅數量",
@@ -31,6 +33,7 @@ const ALLOWED_FIELDS = [
   "guests",
   "meal",
   "vegetarianCount",
+  "guestDetails",
   "allergy",
   "childSeatNeed",
   "childSeatCount",
@@ -80,6 +83,7 @@ function doPost(e) {
         record.guests,
         record.meal,
         record.vegetarianCount,
+        record.guestDetailsText,
         record.allergy,
         record.childSeatNeed,
         record.childSeatCount,
@@ -112,10 +116,14 @@ function buildRecord(params) {
   const ceremony = normalizeAttendance(params.ceremony);
   const banquet = normalizeAttendance(params.banquet);
   const attending = ceremony === "出席" || banquet === "出席";
-  const guests = attending ? clampInteger(params.guests, 1, 10, NaN) : 0;
-  const vegetarianCount = clampInteger(params.vegetarianCount || "0", 0, 10, 0);
-  const childSeatNeed = params.childSeatNeed === "需要" ? "需要" : "不需要";
-  const childSeatCount = childSeatNeed === "需要" ? clampInteger(params.childSeatCount, 1, 5, NaN) : 0;
+  const guestDetails = attending ? normalizeGuestDetails(params.guestDetails, params) : [];
+  const guests = attending ? guestDetails.length : 0;
+  const vegetarianCount = guestDetails.filter((guest) => guest.meal === "素食").length;
+  const childSeatCount = guestDetails.filter((guest) => guest.childSeat === "是").length;
+  const childSeatNeed = childSeatCount > 0 ? "需要" : "不需要";
+  const allergy = attending
+    ? guestDetails.filter((guest) => guest.allergy).map((guest) => guest.name + "：" + guest.allergy).join("；")
+    : sanitize(params.allergy);
 
   return {
     name: sanitize(params.name),
@@ -123,9 +131,11 @@ function buildRecord(params) {
     ceremony,
     banquet,
     guests,
-    meal: normalizeMeal(params.meal),
+    meal: deriveMealSummary(guestDetails, params.meal),
     vegetarianCount,
-    allergy: sanitize(params.allergy),
+    guestDetails,
+    guestDetailsText: formatGuestDetails(guestDetails),
+    allergy: sanitize(allergy),
     childSeatNeed,
     childSeatCount,
     transport: sanitize(params.transport),
@@ -145,13 +155,14 @@ function validateRecord(record) {
   if (!record.phone || !/^\+?\d{8,15}$/.test(phone)) errors.push("invalid_phone");
   if (!record.ceremony) errors.push("missing_ceremony");
   if (!record.banquet) errors.push("missing_banquet");
-  if ((record.ceremony === "出席" || record.banquet === "出席") && (!Number.isInteger(record.guests) || record.guests < 1 || record.guests > 10)) {
+  if ((record.ceremony === "出席" || record.banquet === "出席") && (!Number.isInteger(record.guests) || record.guests < 1 || record.guests > MAX_GUESTS)) {
     errors.push("invalid_guests");
   }
-  if (record.vegetarianCount > record.guests && record.guests > 0) errors.push("invalid_vegetarian_count");
-  if (record.childSeatNeed === "需要" && (!Number.isInteger(record.childSeatCount) || record.childSeatCount < 1 || record.childSeatCount > 5)) {
-    errors.push("invalid_child_seat_count");
-  }
+  record.guestDetails.forEach((guest, index) => {
+    if (!guest.name) errors.push("missing_guest_name_" + index);
+    if (guest.meal !== "葷食" && guest.meal !== "素食") errors.push("invalid_guest_meal_" + index);
+    if (guest.childSeat !== "是" && guest.childSeat !== "否") errors.push("invalid_guest_child_seat_" + index);
+  });
 
   return errors;
 }
@@ -171,6 +182,59 @@ function normalizeAttendance(value) {
 
 function normalizeMeal(value) {
   return ["葷食", "素食", "葷素皆有", "特殊飲食需求"].includes(value) ? value : "葷食";
+}
+
+function normalizeGuestDetails(value, params) {
+  const parsed = parseGuestDetails(value);
+  if (parsed.length) return parsed;
+
+  const fallbackMeal = normalizeMeal(params.meal) === "素食" ? "素食" : "葷食";
+  if (params.name) {
+    return [{
+      role: "本人",
+      name: sanitize(params.name),
+      meal: fallbackMeal,
+      noBeef: "否",
+      allergy: sanitize(params.allergy),
+      childSeat: "否"
+    }];
+  }
+  return [];
+}
+
+function parseGuestDetails(value) {
+  if (!value) return [];
+  try {
+    const rawGuests = JSON.parse(String(value));
+    if (!Array.isArray(rawGuests)) return [];
+    return rawGuests.slice(0, MAX_GUESTS).map((guest, index) => ({
+      role: index === 0 ? "本人" : "家眷",
+      name: sanitize(guest && guest.name),
+      meal: guest && guest.meal === "素食" ? "素食" : "葷食",
+      noBeef: guest && guest.noBeef === "是" ? "是" : "否",
+      allergy: guest && guest.noBeef === "是" ? "不吃牛" : sanitize(guest && guest.allergy),
+      childSeat: guest && guest.childSeat === "是" ? "是" : "否"
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
+function deriveMealSummary(guestDetails, fallback) {
+  if (!guestDetails.length) return normalizeMeal(fallback || "葷食");
+  const vegetarianCount = guestDetails.filter((guest) => guest.meal === "素食").length;
+  if (vegetarianCount === guestDetails.length) return "素食";
+  if (vegetarianCount === 0) return "葷食";
+  return "葷素皆有";
+}
+
+function formatGuestDetails(guestDetails) {
+  return guestDetails.map((guest, index) => {
+    const role = index === 0 ? "本人" : "家眷" + index;
+    const allergy = guest.allergy ? "；" + sanitize(guest.allergy) : "";
+    const childSeat = guest.childSeat === "是" ? "；需要兒童椅" : "";
+    return (index + 1) + ". " + role + "：" + sanitize(guest.name) + "；" + guest.meal + allergy + childSeat;
+  }).join("\n");
 }
 
 function clampInteger(value, min, max, fallback) {

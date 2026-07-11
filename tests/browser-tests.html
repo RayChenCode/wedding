@@ -38,41 +38,69 @@
 
         assert("site config exposed", Boolean(win.__weddingSite));
         assert("countdown has no NaN", !doc.querySelector("#days").textContent.includes("NaN"));
-        assert("carousel active slide exists", doc.querySelectorAll(".slide.is-active").length === 1);
+        assert("carousel active slide exists", doc.querySelectorAll(".hero-base.is-active").length === 1);
+        assert("carousel dots match slides", doc.querySelectorAll(".carousel-dots button").length === doc.querySelectorAll(".hero-base").length);
+        assert("hero title is above the photo", doc.querySelector(".hero__title").getBoundingClientRect().bottom <= doc.querySelector(".hero__carousel").getBoundingClientRect().top + 1);
         assert("no horizontal overflow mobile", doc.documentElement.scrollWidth <= doc.documentElement.clientWidth + 1);
+
+        assert("album renders 6 pages", doc.querySelectorAll(".album__page").length === 6);
+        assert("album prev is disabled on first page", doc.querySelector("[data-album-prev]").disabled);
+        click(doc, "[data-album-next]");
+        await wait(100);
+        assert("album next flips to page 2", doc.querySelector("[data-album-current]").textContent === "2");
+        assert("first album page is flipped away", doc.querySelectorAll(".album__page")[0].classList.contains("is-flipped"));
+        click(doc, "[data-album-prev]");
+        await wait(100);
+        assert("album prev returns to page 1", doc.querySelector("[data-album-current]").textContent === "1");
+
+        assert("invitation ticket links to the rsvp form", doc.querySelector(".ticket").getAttribute("href") === "#rsvp");
+        assert("schedule shows the new title", doc.querySelector("#schedule .section-title").textContent.trim() === "Our Wedding Day");
+        assert("redundant chinese section headings are gone", !doc.body.innerText.includes("活動流程") && !doc.body.innerText.includes("交通與停車"));
+        assert("sections are centred", getComputedStyle(doc.querySelector("#schedule")).textAlign === "center");
+        assert("form fields stay left aligned", getComputedStyle(doc.querySelector("#rsvpForm")).textAlign === "left");
+
+        assert("only the hero names use the script font", getComputedStyle(doc.querySelector(".hero__names")).fontFamily.includes("Allura")
+          && !getComputedStyle(doc.querySelector(".hero__tagline")).fontFamily.includes("Allura")
+          && !getComputedStyle(doc.querySelector("#countdownTitle")).fontFamily.includes("Allura"));
 
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
         await wait(200);
         assert("blank form shows name error", doc.querySelector("#nameError").textContent.length > 0);
         assert("blank form shows phone error", doc.querySelector("#phoneError").textContent.length > 0);
-        assert("blank attendance keeps guests editable", !doc.querySelector("#guests").disabled);
+        assert("blank attendance hides guest list", doc.querySelector("#guestSection").classList.contains("is-hidden"));
 
         input(doc, "#name", "測試 Ray");
         input(doc, "#phone", "abc");
-        click(doc, "input[name='ceremony'][value='不出席']");
-        click(doc, "input[name='banquet'][value='不出席']");
+        click(doc, "input[name='attendancePlan'][value='none']");
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
         await wait(200);
         assert("bad phone rejected", doc.querySelector("#phoneError").textContent.length > 0);
         assert("not attending sets guests zero", doc.querySelector("#guests").value === "0");
+        assert("not attending keeps guest details empty", doc.querySelector("#guestDetails").value === "");
 
-        click(doc, "input[name='ceremony'][value='出席']");
-        click(doc, "input[name='banquet'][value='出席']");
+        click(doc, "input[name='attendancePlan'][value='ceremony_banquet']");
         input(doc, "#phone", "0912-345-678");
-        input(doc, "#guests", "11");
+        assert("attending shows guest list", !doc.querySelector("#guestSection").classList.contains("is-hidden"));
+        assert("primary guest is present", doc.querySelectorAll(".guest-card").length === 1);
+
+        click(doc, "#addGuest");
+        await wait(100);
+        assert("add guest creates companion card", doc.querySelectorAll(".guest-card").length === 2);
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
         await wait(200);
-        assert("too many guests rejected", doc.querySelector("#guestsError").textContent.length > 0);
+        assert("missing companion name rejected", doc.querySelector("#guestDetailsError").textContent.includes("家眷"));
 
-        input(doc, "#guests", "2");
-        input(doc, "#vegetarianCount", "1");
-        input(doc, "#childSeatNeed", "需要");
-        input(doc, "#childSeatCount", "");
-        doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        input(doc, "input[name='guestUiName1']", "測試家人");
+        click(doc, "input[name='guestUiMeal1'][value='素食']");
+        click(doc, "input[name='guestUiChildSeat1'][value='是']");
+        click(doc, "input[name='guestUiNoBeef1']");
         await wait(200);
-        assert("child seat count required", doc.querySelector("#childSeatCountError").textContent.length > 0);
+        assert("guest count is derived from cards", doc.querySelector("#guests").value === "2");
+        assert("vegetarian count is derived from cards", doc.querySelector("#vegetarianCount").value === "1");
+        assert("guest details serialized", doc.querySelector("#guestDetails").value.includes("測試家人"));
+        assert("child seat count is derived from guest row", doc.querySelector("#childSeatCount").value === "1");
+        assert("no-beef checkbox feeds allergy field", doc.querySelector("#allergy").value.includes("不吃牛"));
 
-        input(doc, "#childSeatCount", "1");
         input(doc, "#message", "=測試公式注入 😊");
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));

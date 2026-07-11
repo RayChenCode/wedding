@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Ray 與 Catherine 的婚禮邀請函，邀請你在 2026 年 10 月 24 日一同見證。">
-    <meta name="theme-color" content="#f7ecdc">
+    <meta name="theme-color" content="#efe9f5">
     <meta property="og:title" content="Ray & Catherine Wedding">
     <meta property="og:description" content="誠摯邀請你與我們一起見證 2026 年 10 月 24 日的婚禮。">
     <meta property="og:type" content="website">
@@ -13,47 +13,66 @@
     <link rel="icon" href="assets/meta/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=Parisienne&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Iansui&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="hero" id="top">
-      <nav class="nav" aria-label="主要導覽">
-        <a href="#story">邀請</a>
-        <a href="#gallery">照片</a>
-        <a href="#schedule">流程</a>
-        <a href="#rsvp">回覆</a>
-      </nav>
-
-      <div class="hero__content">
-        <p class="eyebrow">October 24, 2026</p>
-        <h1>Ray & Catherine</h1>
-        <p class="hero__subtitle">We're getting married</p>
-        <p class="hero__copy">誠摯邀請你與我們一起見證這份承諾，在秋日午後分享喜悅與祝福。</p>
-        <a class="button" href="#rsvp">填寫出席回覆</a>
+      <div class="hero__title">
+        <p class="hero__eyebrow" data-reveal style="--reveal-delay: 0ms">October 24, 2026</p>
+        <h1 class="hero__names" data-reveal style="--reveal-delay: 120ms">Ray <em>&amp;</em> Catherine</h1>
+        <p class="hero__tagline" data-reveal style="--reveal-delay: 260ms">Invite You To Celebrate Their Wedding</p>
       </div>
 
-      <section class="hero__carousel" aria-label="婚紗照輪播">
-        <div class="slides" data-carousel>
-          <picture class="slide is-active">
-            <source srcset="assets/photos-webp/photo-01.webp" type="image/webp">
-            <img src="assets/photos/photo-01.jpg" width="2200" height="1354" alt="Ray and Catherine holding 1024 balloons" fetchpriority="high">
+      <section class="hero__carousel" aria-label="婚紗照輪播" data-carousel>
+        <div class="hero-bases">
+          <picture class="hero-base is-active">
+            <source srcset="assets/hero/hero-01.webp" type="image/webp">
+            <img src="assets/hero/hero-01.jpg" width="1800" height="1200" alt="Ray 與 Catherine 與伴郎伴娘在草地上開心奔跑" fetchpriority="high">
           </picture>
-          <picture class="slide">
-            <source srcset="assets/photos-webp/photo-07.webp" type="image/webp">
-            <img src="assets/photos/photo-07.jpg" width="2200" height="1467" alt="Ray and Catherine smiling on the grass" loading="lazy">
+          <picture class="hero-base">
+            <source srcset="assets/hero/hero-02.webp" type="image/webp">
+            <img src="assets/hero/hero-02.jpg" width="1800" height="1156" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
           </picture>
-          <picture class="slide">
-            <source srcset="assets/photos-webp/photo-08.webp" type="image/webp">
-            <img src="assets/photos/photo-08.jpg" width="2200" height="1467" alt="Ray and Catherine standing by the sea" loading="lazy">
+          <picture class="hero-base">
+            <source srcset="assets/hero/hero-03.webp" type="image/webp">
+            <img src="assets/hero/hero-03.jpg" width="1800" height="1108" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
+          </picture>
+          <picture class="hero-base">
+            <source srcset="assets/hero/hero-04.webp" type="image/webp">
+            <img src="assets/hero/hero-04.jpg" width="1800" height="1139" alt="Ray 與 Catherine 的婚紗照" loading="lazy">
+          </picture>
+        </div>
+        <div class="hero-cuts" aria-hidden="true">
+          <picture class="hero-cut">
+            <source srcset="assets/hero/hero-01-cut.webp" type="image/webp">
+            <img src="assets/hero/hero-01-cut.png" width="1800" height="1200" alt="" loading="lazy">
+          </picture>
+          <picture class="hero-cut">
+            <source srcset="assets/hero/hero-02-cut.webp" type="image/webp">
+            <img src="assets/hero/hero-02-cut.png" width="1800" height="1156" alt="" loading="lazy">
+          </picture>
+          <picture class="hero-cut">
+            <source srcset="assets/hero/hero-03-cut.webp" type="image/webp">
+            <img src="assets/hero/hero-03-cut.png" width="1800" height="1108" alt="" loading="lazy">
+          </picture>
+          <picture class="hero-cut">
+            <source srcset="assets/hero/hero-04-cut.webp" type="image/webp">
+            <img src="assets/hero/hero-04-cut.png" width="1800" height="1139" alt="" loading="lazy">
           </picture>
         </div>
         <div class="carousel-dots" aria-label="輪播目前頁面">
           <button type="button" class="is-active" aria-label="顯示第 1 張照片"></button>
           <button type="button" aria-label="顯示第 2 張照片"></button>
           <button type="button" aria-label="顯示第 3 張照片"></button>
+          <button type="button" aria-label="顯示第 4 張照片"></button>
         </div>
       </section>
+
+      <div class="hero__intro" data-reveal style="--reveal-delay: 420ms">
+        <p class="hero__copy">誠摯邀請你與我們一起見證這份承諾，在秋日午後分享喜悅與祝福。</p>
+        <a class="button" href="#rsvp">填寫出席回覆</a>
+      </div>
 
       <a class="scroll-cue" href="#story" aria-label="向下瀏覽">
         <span></span>
@@ -62,71 +81,182 @@
 
     <main>
       <section class="section intro" id="story">
-        <p class="script-title">A day drawn by love</p>
-        <h2>我們要結婚了</h2>
+        <h2 class="section-title">Our Story</h2>
         <p>
           一路走來，我們帶著彼此的陪伴、家人與朋友的祝福，迎向人生新的篇章。
           期待在這一天見到你，也把這份溫柔而重要的時刻分享給你。
         </p>
       </section>
 
-      <section class="gallery" id="gallery" aria-label="婚紗照片">
-        <figure class="tile tile--tall">
-          <picture>
-            <source srcset="assets/photos-webp/photo-02.webp" type="image/webp">
-            <img src="assets/photos/photo-02.jpg" width="1467" height="2200" alt="Ray and Catherine beach portrait" loading="lazy">
-          </picture>
-        </figure>
-        <figure class="tile">
-          <picture>
-            <source srcset="assets/photos-webp/photo-10.webp" type="image/webp">
-            <img src="assets/photos/photo-10.jpg" width="1467" height="2200" alt="Ray and Catherine laughing with bouquet" loading="lazy">
-          </picture>
-        </figure>
-        <figure class="tile tile--wide">
-          <picture>
-            <source srcset="assets/photos-webp/photo-04.webp" type="image/webp">
-            <img src="assets/photos/photo-04.jpg" width="2200" height="1757" alt="Ray and Catherine celebrating with colorful streamers" loading="lazy">
-          </picture>
-        </figure>
-        <figure class="tile">
-          <picture>
-            <source srcset="assets/photos-webp/photo-03.webp" type="image/webp">
-            <img src="assets/photos/photo-03.jpg" width="1467" height="2200" alt="Bride and groom walking on the beach" loading="lazy">
-          </picture>
-        </figure>
-        <figure class="tile tile--tall">
-          <picture>
-            <source srcset="assets/photos-webp/photo-05.webp" type="image/webp">
-            <img src="assets/photos/photo-05.jpg" width="1467" height="2200" alt="Catherine in wedding dress in the woods" loading="lazy">
-          </picture>
-        </figure>
-        <figure class="tile">
-          <picture>
-            <source srcset="assets/photos-webp/photo-09.webp" type="image/webp">
-            <img src="assets/photos/photo-09.jpg" width="1467" height="2200" alt="Ray kneeling beside Catherine on the beach" loading="lazy">
-          </picture>
-        </figure>
+      <section class="album" id="gallery" aria-roledescription="carousel" aria-label="婚紗照片相簿">
+        <button class="album__nav album__nav--prev" type="button" data-album-prev aria-label="上一張照片">‹</button>
+        <div class="album__stage" data-album tabindex="0">
+          <figure class="album__page is-active">
+            <picture>
+              <source srcset="assets/photos-webp/photo-02.webp" type="image/webp">
+              <img src="assets/photos/photo-02.jpg" width="1467" height="2200" alt="Ray 與 Catherine 的海邊合影" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture>
+              <source srcset="assets/photos-webp/photo-10.webp" type="image/webp">
+              <img src="assets/photos/photo-10.jpg" width="1467" height="2200" alt="Ray 與 Catherine 捧著花束大笑" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture>
+              <source srcset="assets/photos-webp/photo-04.webp" type="image/webp">
+              <img src="assets/photos/photo-04.jpg" width="2200" height="1757" alt="Ray 與 Catherine 在彩帶中慶祝" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture>
+              <source srcset="assets/photos-webp/photo-03.webp" type="image/webp">
+              <img src="assets/photos/photo-03.jpg" width="1467" height="2200" alt="新郎與新娘走在海灘上" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture>
+              <source srcset="assets/photos-webp/photo-05.webp" type="image/webp">
+              <img src="assets/photos/photo-05.jpg" width="1467" height="2200" alt="Catherine 穿著婚紗站在林間" loading="lazy">
+            </picture>
+          </figure>
+          <figure class="album__page">
+            <picture>
+              <source srcset="assets/photos-webp/photo-09.webp" type="image/webp">
+              <img src="assets/photos/photo-09.jpg" width="1467" height="2200" alt="Ray 在海邊單膝跪在 Catherine 身旁" loading="lazy">
+            </picture>
+          </figure>
+        </div>
+        <button class="album__nav album__nav--next" type="button" data-album-next aria-label="下一張照片">›</button>
+        <p class="album__counter" aria-live="polite"><span data-album-current>1</span> / <span data-album-total>6</span></p>
       </section>
 
-      <section class="section details" id="details">
-        <div>
-          <p class="label">日期與時間</p>
-          <h2 data-config="dateDisplay">2026.10.24</h2>
-          <p data-config="timeDisplay">Saturday · 10:30 AM</p>
+      <section class="section schedule" id="schedule">
+        <h2 class="section-title">Our Wedding Day</h2>
+        <div class="schedule-meta">
+          <p class="schedule-meta__date">
+            <span data-config="dateDisplay">2026.10.24</span>（六）
+          </p>
+          <p class="schedule-meta__place">
+            地點
+            <a class="schedule-meta__venue" data-config-link="googleDirectionsUrl" href="#" target="_blank" rel="noreferrer">
+              <span data-config="venueName">CHALET V</span>
+              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" fill="currentColor"/>
+              </svg>
+              <span class="sr-only">在 Google 地圖開啟</span>
+            </a>
+          </p>
         </div>
-        <div>
-          <p class="label">地點</p>
-          <h2 data-config="venueName">CHALET V</h2>
-          <p data-config="venueAddress">104 臺北市中山區成功里植福路 8 號</p>
-          <p data-config="entranceNote">入口於典華停車場後方木門處，抵達後請依現場指引入場。</p>
-          <a class="text-link" data-config-link="mapUrl" href="#" target="_blank" rel="noreferrer">查看地圖</a>
+        <ol class="timeline">
+          <li>
+            <time>10:30 - 11:00</time>
+            <div>
+              <h3>簽到</h3>
+              <p>抵達後請先簽到入席，與我們一起準備迎接儀式。</p>
+            </div>
+          </li>
+          <li>
+            <time>11:00 - 11:40</time>
+            <div>
+              <h3>證婚儀式（室外）</h3>
+              <p>最重要的儀式都會在證婚儀式中舉行，真心邀請大家來證婚儀式，陪伴庭勛和芳恩共同見證這份承諾。</p>
+            </div>
+          </li>
+          <li>
+            <time>12:00 - 14:30</time>
+            <div>
+              <h3>午宴（室內）</h3>
+              <p>採西式自助餐，和我們一起享用午宴與輕鬆相聚。</p>
+            </div>
+          </li>
+          <li>
+            <time>14:30 - 15:00</time>
+            <div>
+              <h3>送客</h3>
+              <p>謝謝你的祝福，我們期待留下這一天的合照與回憶。</p>
+            </div>
+          </li>
+        </ol>
+
+        <a class="ticket" href="#rsvp" aria-label="前往填寫出席回覆">
+          <span class="ticket__stub">
+            <span class="ticket__stub-text">婚禮邀請</span>
+          </span>
+          <span class="ticket__body">
+            <span class="ticket__eyebrow">The Wedding Of</span>
+            <span class="ticket__names">Ray <em>&amp;</em> Catherine</span>
+            <span class="ticket__meta">
+              <span><span data-config="dateDisplay">2026.10.24</span>（六）</span>
+              <span class="ticket__dot" aria-hidden="true">·</span>
+              <span data-config="venueName">CHALET V</span>
+            </span>
+            <span class="ticket__cta">RSVP · 填寫出席回覆</span>
+          </span>
+        </a>
+      </section>
+
+      <section class="section rsvp" id="rsvp">
+        <div class="rsvp__heading">
+          <h2 class="section-title">RSVP</h2>
+          <p>謝謝你撥空回覆，讓我們能好好為你保留座位。</p>
         </div>
+
+        <form class="rsvp-form" id="rsvpForm" novalidate>
+          <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="field">
+            <label for="name">姓名 <span>*</span></label>
+            <input id="name" name="name" type="text" autocomplete="name" data-required="true">
+            <p class="field-error" id="nameError"></p>
+          </div>
+          <div class="field">
+            <label for="phone">手機 <span>*</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" data-required="true">
+            <p class="field-error" id="phoneError"></p>
+          </div>
+          <input id="guests" name="guests" type="hidden" value="1">
+          <input id="vegetarianCount" name="vegetarianCount" type="hidden" value="0">
+          <input id="meal" name="meal" type="hidden" value="葷食">
+          <input id="allergy" name="allergy" type="hidden" value="">
+          <input id="ceremony" name="ceremony" type="hidden" value="">
+          <input id="banquet" name="banquet" type="hidden" value="">
+          <input id="childSeatNeed" name="childSeatNeed" type="hidden" value="不需要">
+          <input id="childSeatCount" name="childSeatCount" type="hidden" value="0">
+          <input id="guestDetails" name="guestDetails" type="hidden" value="">
+
+          <fieldset class="attendance-options">
+            <legend>出席調查 <span>*</span></legend>
+            <label><input type="radio" name="attendancePlan" value="ceremony_banquet"> 出席證婚和午宴</label>
+            <label><input type="radio" name="attendancePlan" value="banquet"> 出席午宴</label>
+            <label><input type="radio" name="attendancePlan" value="none"> 雖然無法到場，但會在遠方獻上滿滿的祝福</label>
+            <p class="field-error" id="attendancePlanError"></p>
+          </fieldset>
+
+          <section class="guest-section field--wide" id="guestSection" data-attending-only>
+            <div class="guest-section__head">
+              <div>
+                <h3>請填寫每一位會到場的人</h3>
+                <p>第一位為本人；若有家眷同行，請逐位新增，方便我們安排餐點與座位。</p>
+              </div>
+              <strong id="guestCountSummary">1 位</strong>
+            </div>
+            <div class="guest-list" id="guestList" aria-live="polite"></div>
+            <button class="ghost-button" type="button" id="addGuest">+ 新增家眷</button>
+            <p class="field-error" id="guestDetailsError"></p>
+          </section>
+
+          <div class="field field--wide">
+            <label for="message">祝福留言</label>
+            <textarea id="message" name="message" rows="4"></textarea>
+          </div>
+          <button class="button button--submit" type="submit">送出回覆</button>
+          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        </form>
       </section>
 
       <section class="section traffic">
-        <p class="script-title">Getting there</p>
-        <h2>交通與停車</h2>
+        <h2 class="section-title">Getting There</h2>
         <div class="map-frame" aria-label="CHALET V Google Map">
           <div class="map-fallback">
             <p class="map-fallback__name">CHALET V</p>
@@ -161,139 +291,6 @@
             <p data-config="transitNote">搭乘捷運可由文湖線劍南路站或大直站一帶轉乘步行/計程車前往；自行開車請導航至植福路 8 號或典華停車場。</p>
           </article>
         </div>
-      </section>
-
-      <section class="section schedule" id="schedule">
-        <p class="script-title">Wedding day</p>
-        <h2>活動流程</h2>
-        <ol class="timeline">
-          <li>
-            <time>10:30 - 11:00</time>
-            <div>
-              <h3>簽到</h3>
-              <p>抵達後請先簽到入席，與我們一起準備迎接儀式。</p>
-            </div>
-          </li>
-          <li>
-            <time>11:00 - 11:40</time>
-            <div>
-              <h3>證婚儀式（室外）</h3>
-              <p>最重要的儀式都會在證婚儀式中舉行，真心邀請大家來證婚儀式，陪伴庭勛和芳恩共同見證這份承諾。</p>
-            </div>
-          </li>
-          <li>
-            <time>12:00 - 14:30</time>
-            <div>
-              <h3>午宴（室內）</h3>
-              <p>採西式自助餐，和我們一起享用午宴與輕鬆相聚。</p>
-            </div>
-          </li>
-          <li>
-            <time>14:30 - 15:00</time>
-            <div>
-              <h3>送客</h3>
-              <p>謝謝你的祝福，我們期待留下這一天的合照與回憶。</p>
-            </div>
-          </li>
-        </ol>
-      </section>
-
-      <section class="section note">
-        <p class="script-title">A little note</p>
-        <h2>婚禮小提醒</h2>
-        <div class="note-grid">
-          <article>
-            <h3>何時回覆？</h3>
-            <p data-config="rsvpDeadline">請於 2026/07/31 前完成回覆，方便我們安排座位與餐點。</p>
-          </article>
-          <article>
-            <h3>攜伴與小朋友</h3>
-            <p>可於出席人數填寫總人數；若有小朋友或需要兒童椅，請在表單中告訴我們。</p>
-          </article>
-          <article>
-            <h3>飲食與交通</h3>
-            <p>素食、過敏或特殊飲食需求可於表單備註；若需交通協助，也請一併填寫。</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section rsvp" id="rsvp">
-        <div class="rsvp__heading">
-          <p class="script-title">RSVP</p>
-          <h2>出席調查</h2>
-          <p>謝謝你撥空回覆，讓我們能好好為你保留座位。</p>
-        </div>
-
-        <form class="rsvp-form" id="rsvpForm" novalidate>
-          <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <div class="field field--wide">
-            <label for="name">姓名 <span>*</span></label>
-            <input id="name" name="name" type="text" autocomplete="name" data-required="true">
-            <p class="field-error" id="nameError"></p>
-          </div>
-          <div class="field">
-            <label for="phone">手機 <span>*</span></label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" data-required="true">
-            <p class="field-error" id="phoneError"></p>
-          </div>
-          <div class="field">
-            <label for="guests">出席人數 <span>*</span></label>
-            <input id="guests" name="guests" type="number" min="0" max="10" value="1" inputmode="numeric">
-            <p class="field-error" id="guestsError"></p>
-          </div>
-          <fieldset>
-            <legend>證婚儀式（室外）<span>*</span></legend>
-            <label><input type="radio" name="ceremony" value="出席"> 出席</label>
-            <label><input type="radio" name="ceremony" value="不出席"> 不出席</label>
-            <p class="field-error" id="ceremonyError"></p>
-          </fieldset>
-          <fieldset>
-            <legend>午宴（室內）<span>*</span></legend>
-            <label><input type="radio" name="banquet" value="出席"> 出席</label>
-            <label><input type="radio" name="banquet" value="不出席"> 不出席</label>
-            <p class="field-error" id="banquetError"></p>
-          </fieldset>
-          <div class="field">
-            <label for="meal">飲食需求</label>
-            <select id="meal" name="meal">
-              <option value="葷食">葷食</option>
-              <option value="素食">素食</option>
-              <option value="葷素皆有">葷素皆有</option>
-              <option value="特殊飲食需求">特殊飲食需求</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="vegetarianCount">素食人數</label>
-            <input id="vegetarianCount" name="vegetarianCount" type="number" min="0" max="10" value="0" inputmode="numeric">
-            <p class="field-error" id="vegetarianCountError"></p>
-          </div>
-          <div class="field field--wide">
-            <label for="allergy">特殊飲食或過敏資訊</label>
-            <input id="allergy" name="allergy" type="text" placeholder="例如：海鮮過敏、蛋奶素、無牛肉">
-          </div>
-          <div class="field">
-            <label for="childSeatNeed">是否需要兒童椅</label>
-            <select id="childSeatNeed" name="childSeatNeed">
-              <option value="不需要">不需要</option>
-              <option value="需要">需要</option>
-            </select>
-          </div>
-          <div class="field is-hidden" id="childSeatCountField">
-            <label for="childSeatCount">兒童椅數量 <span>*</span></label>
-            <input id="childSeatCount" name="childSeatCount" type="number" min="1" max="5" value="1" inputmode="numeric">
-            <p class="field-error" id="childSeatCountError"></p>
-          </div>
-          <div class="field field--wide">
-            <label for="transport">交通需求</label>
-            <input id="transport" name="transport" type="text" placeholder="自行前往 / 需要協助 / 其他">
-          </div>
-          <div class="field field--wide">
-            <label for="message">祝福留言</label>
-            <textarea id="message" name="message" rows="4"></textarea>
-          </div>
-          <button class="button button--submit" type="submit">送出回覆</button>
-          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-        </form>
       </section>
 
       <section class="countdown" aria-label="婚禮倒數">

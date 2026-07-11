@@ -32,6 +32,7 @@ The form writes these columns to Google Sheets:
 - 出席人數
 - 飲食需求
 - 素食人數
+- 同行賓客明細
 - 特殊飲食
 - 是否需要兒童椅
 - 兒童椅數量
@@ -63,6 +64,8 @@ To update the backend:
 9. Deploy and keep using the `/exec` Web App URL.
 
 The Apps Script backend uses a field whitelist, required-field validation, honeypot handling, header initialization, locked append writes, JSON/HTML responses, and spreadsheet formula-injection protection.
+
+The RSVP form collects attendee details per person. The first attendee is the respondent, and additional family members can be added in the form. The frontend sends a `guestDetails` summary, while Apps Script recalculates total attendee count, vegetarian count, meal summary, and allergy summary before writing to the sheet.
 
 ## Local preview
 

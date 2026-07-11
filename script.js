@@ -3,7 +3,7 @@ const SITE_CONFIG = {
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbzdbZC5vQkFboX_W12WJ1HukfJEf910LTfAYBIDyeeRCI2VmGu7kAE-BTZnYWyxP5Dv5Q/exec",
   weddingDate: "2026-10-24T10:30:00+08:00",
   dateDisplay: "2026.10.24",
-  timeDisplay: "Saturday · 10:30 簽到 · 11:00 證婚 · 12:00 午宴",
+  timeDisplay: "星期六 · 10:30 簽到 · 11:00 證婚 · 12:00 午宴",
   venueName: "CHALET V",
   venueAddress: "104 臺北市中山區成功里植福路 8 號",
   entranceNote: "入口於典華停車場後方木門處，抵達後請依現場指引入場。",
@@ -115,33 +115,213 @@ function updateCountdown(now = new Date()) {
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
-const slides = [...document.querySelectorAll(".slide")];
+/**
+ * 主視覺輪播：每張照片都有一張「去背人像」疊層，人像永遠在所有底圖之上。
+ * 節奏：底圖 1 → 疊上人像 1 → 底圖 2 出現（人像 1 仍留著）→ 收掉人像 1，只剩底圖 2 → 疊上人像 2 → ...
+ * 所有切換都是瞬間的，不做過場動畫（見 styles.css）。
+ */
+const bases = [...document.querySelectorAll(".hero-base")];
+const cuts = [...document.querySelectorAll(".hero-cut")];
 const dots = [...document.querySelectorAll(".carousel-dots button")];
-let activeSlide = 0;
 
-function showSlide(index) {
-  activeSlide = (index + slides.length) % slides.length;
-  slides.forEach((slide, slideIndex) => {
-    slide.classList.toggle("is-active", slideIndex === activeSlide);
+const BASE_HOLD_MS = 480; // 只有底圖的停留時間
+const CUT_HOLD_MS = 640; // 底圖 + 自己的人像共存
+const OVERLAP_MS = 640; // 下一張底圖出現、上一張人像仍留著
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+let activeIndex = 0;
+let previousIndex = -1;
+let timer = null;
+
+function renderCarousel(cutIndex) {
+  bases.forEach((base, index) => {
+    base.classList.toggle("is-active", index === activeIndex);
+    base.classList.toggle("is-prev", index === previousIndex);
   });
-  dots.forEach((dot, dotIndex) => {
-    dot.classList.toggle("is-active", dotIndex === activeSlide);
+  cuts.forEach((cut, index) => {
+    cut.classList.toggle("is-on", index === cutIndex);
+  });
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("is-active", index === activeIndex);
   });
 }
 
-dots.forEach((dot, index) => {
-  dot.addEventListener("click", () => showSlide(index));
-});
+function runCycle() {
+  renderCarousel(activeIndex); // 疊上目前這張的人像
 
-if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  setInterval(() => showSlide(activeSlide + 1), 5200);
+  timer = setTimeout(() => {
+    const holdingCut = activeIndex;
+    previousIndex = activeIndex;
+    activeIndex = (activeIndex + 1) % bases.length;
+    renderCarousel(holdingCut); // 下一張底圖出現，上一張人像仍浮在最上層
+
+    timer = setTimeout(() => {
+      renderCarousel(null); // 收掉人像，只剩新底圖
+      timer = setTimeout(runCycle, BASE_HOLD_MS);
+    }, OVERLAP_MS);
+  }, CUT_HOLD_MS);
 }
+
+function goToSlide(index) {
+  clearTimeout(timer);
+  previousIndex = activeIndex;
+  activeIndex = (index + bases.length) % bases.length;
+  renderCarousel(null);
+  if (!prefersReducedMotion.matches) {
+    timer = setTimeout(runCycle, BASE_HOLD_MS);
+  }
+}
+
+if (bases.length) {
+  renderCarousel(null);
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => goToSlide(index));
+  });
+
+  if (!prefersReducedMotion.matches) {
+    timer = setTimeout(runCycle, BASE_HOLD_MS);
+  }
+}
+
+/**
+ * 相簿：3D 翻頁。每一頁翻走後露出下一頁，不循環，
+ * 所以第一頁的「上一張」與最後一頁的「下一張」會 disabled。
+ */
+const albumStage = document.querySelector("[data-album]");
+const albumPages = [...document.querySelectorAll(".album__page")];
+const albumPrevButton = document.querySelector("[data-album-prev]");
+const albumNextButton = document.querySelector("[data-album-next]");
+const albumCurrentLabel = document.querySelector("[data-album-current]");
+const albumTotalLabel = document.querySelector("[data-album-total]");
+const SWIPE_THRESHOLD_PX = 40;
+
+let albumIndex = 0;
+let swipeStartX = null;
+
+function renderAlbum() {
+  albumPages.forEach((page, index) => {
+    page.classList.toggle("is-flipped", index < albumIndex);
+    page.classList.toggle("is-active", index === albumIndex);
+    // 已翻走的頁疊在最上層才不會擋住目前這頁，後面的頁依序往下疊
+    page.style.zIndex = String(index < albumIndex ? albumPages.length + index : albumPages.length - index);
+  });
+  if (albumCurrentLabel) albumCurrentLabel.textContent = String(albumIndex + 1);
+  if (albumPrevButton) albumPrevButton.disabled = albumIndex === 0;
+  if (albumNextButton) albumNextButton.disabled = albumIndex === albumPages.length - 1;
+}
+
+function goToPage(index) {
+  albumIndex = Math.min(Math.max(index, 0), albumPages.length - 1);
+  renderAlbum();
+}
+
+if (albumPages.length) {
+  if (albumTotalLabel) albumTotalLabel.textContent = String(albumPages.length);
+  renderAlbum();
+
+  albumPrevButton?.addEventListener("click", () => goToPage(albumIndex - 1));
+  albumNextButton?.addEventListener("click", () => goToPage(albumIndex + 1));
+
+  albumStage?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") goToPage(albumIndex - 1);
+    if (event.key === "ArrowRight") goToPage(albumIndex + 1);
+  });
+
+  albumStage?.addEventListener("pointerdown", (event) => {
+    swipeStartX = event.clientX;
+  });
+
+  albumStage?.addEventListener("pointerup", (event) => {
+    if (swipeStartX === null) return;
+    const deltaX = event.clientX - swipeStartX;
+    swipeStartX = null;
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
+    goToPage(deltaX < 0 ? albumIndex + 1 : albumIndex - 1);
+  });
+}
+
+/**
+ * 捲動進場：元素進入視窗後才浮現，只播一次。
+ * 除了 HTML 上手動標的 [data-reveal]，其餘區塊在這裡自動掛上並做出時間差。
+ */
+const REVEAL_TARGETS = [
+  ".section",
+  ".album",
+  ".ticket",
+  ".timeline li",
+  ".note-grid article",
+  ".schedule-meta",
+  ".map-frame",
+  ".map-actions",
+  ".countdown",
+  "footer p",
+];
+
+function setupReveals() {
+  REVEAL_TARGETS.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((node, index) => {
+      if (node.hasAttribute("data-reveal")) {
+        return;
+      }
+      node.setAttribute("data-reveal", "");
+      node.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 110}ms`);
+    });
+  });
+
+  const revealables = [...document.querySelectorAll("[data-reveal]")];
+
+  if (prefersReducedMotion.matches || !("IntersectionObserver" in window)) {
+    revealables.forEach((node) => node.classList.add("is-revealed"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+        entry.target.classList.add("is-revealed");
+        observer.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
+  );
+
+  revealables.forEach((node) => observer.observe(node));
+}
+
+setupReveals();
 
 const form = document.getElementById("rsvpForm");
 const statusNode = document.getElementById("formStatus");
-const childSeatNeed = document.getElementById("childSeatNeed");
-const childSeatCountField = document.getElementById("childSeatCountField");
 const guestsInput = document.getElementById("guests");
+const guestSection = document.getElementById("guestSection");
+const guestList = document.getElementById("guestList");
+const addGuestButton = document.getElementById("addGuest");
+const guestCountSummary = document.getElementById("guestCountSummary");
+const guestDetailsInput = document.getElementById("guestDetails");
+const vegetarianCountInput = document.getElementById("vegetarianCount");
+const mealInput = document.getElementById("meal");
+const allergyInput = document.getElementById("allergy");
+const ceremonyInput = document.getElementById("ceremony");
+const banquetInput = document.getElementById("banquet");
+const childSeatNeedInput = document.getElementById("childSeatNeed");
+const childSeatCountInput = document.getElementById("childSeatCount");
+const attendingOnlyFields = [...form.querySelectorAll("[data-attending-only]")];
+
+let nextGuestId = 1;
+let guestRows = [
+  {
+    id: 0,
+    role: "本人",
+    name: "",
+    meal: "葷食",
+    noBeef: "否",
+    childSeat: "否",
+  },
+];
 
 function setStatus(message, isError = false) {
   statusNode.textContent = message;
@@ -176,11 +356,29 @@ function setFieldError(name, message) {
   }
 }
 
+function setGuestError(message) {
+  const errorNode = document.getElementById("guestDetailsError");
+  if (errorNode) errorNode.textContent = message;
+}
+
+function syncAttendancePlan() {
+  const plan = fieldValue("attendancePlan");
+  const values = {
+    ceremony_banquet: ["出席", "出席"],
+    banquet: ["不出席", "出席"],
+    none: ["不出席", "不出席"],
+  }[plan] || ["", ""];
+  ceremonyInput.value = values[0];
+  banquetInput.value = values[1];
+}
+
 function isAttendingAnyEvent() {
+  syncAttendancePlan();
   return fieldValue("ceremony") === "出席" || fieldValue("banquet") === "出席";
 }
 
 function isNotAttendingAllEvents() {
+  syncAttendancePlan();
   return fieldValue("ceremony") === "不出席" && fieldValue("banquet") === "不出席";
 }
 
@@ -188,12 +386,165 @@ function normalizePhone(phone) {
   return phone.replace(/[\s\-()#]/g, "");
 }
 
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;",
+  })[char]);
+}
+
+function ensurePrimaryGuest() {
+  if (!guestRows.length || guestRows[0].role !== "本人") {
+    guestRows.unshift({ id: 0, role: "本人", name: "", meal: "葷食", noBeef: "否", childSeat: "否" });
+  }
+  guestRows[0].name = fieldValue("name");
+}
+
+function getGuestDetails() {
+  ensurePrimaryGuest();
+  if (!isAttendingAnyEvent()) return [];
+  return guestRows.map((guest, index) => ({
+    role: index === 0 ? "本人" : "家眷",
+    name: index === 0 ? fieldValue("name") : String(guest.name || "").trim(),
+    meal: guest.meal === "素食" ? "素食" : "葷食",
+    noBeef: guest.noBeef === "是" ? "是" : "否",
+    allergy: guest.noBeef === "是" ? "不吃牛" : "",
+    childSeat: guest.childSeat === "是" ? "是" : "否",
+  }));
+}
+
+function deriveMealSummary(details) {
+  if (!details.length) return "";
+  const vegetarianCount = details.filter((guest) => guest.meal === "素食").length;
+  if (vegetarianCount === details.length) return "素食";
+  if (vegetarianCount === 0) return "葷食";
+  return "葷素皆有";
+}
+
+function syncGuestHiddenFields() {
+  const details = getGuestDetails();
+  const vegetarianCount = details.filter((guest) => guest.meal === "素食").length;
+  const allergySummary = details
+    .filter((guest) => guest.allergy)
+    .map((guest) => `${guest.name || guest.role}：${guest.allergy}`)
+    .join("；");
+  const childSeatCount = details.filter((guest) => guest.childSeat === "是").length;
+
+  guestsInput.value = String(details.length);
+  vegetarianCountInput.value = String(vegetarianCount);
+  mealInput.value = deriveMealSummary(details);
+  allergyInput.value = allergySummary;
+  childSeatNeedInput.value = childSeatCount > 0 ? "需要" : "不需要";
+  childSeatCountInput.value = String(childSeatCount);
+  guestDetailsInput.value = details.length ? JSON.stringify(details) : "";
+
+  if (guestCountSummary) {
+    guestCountSummary.textContent = details.length ? `${details.length} 位` : "不出席";
+  }
+}
+
+/** checkbox 用勾選狀態換成「是／否」，其餘欄位直接取值。 */
+function readGuestFieldValue(target) {
+  if (target.type === "checkbox") {
+    return target.checked ? "是" : "否";
+  }
+  return target.value;
+}
+
+function renderGuestList() {
+  ensurePrimaryGuest();
+  if (!guestList) return;
+
+  guestList.innerHTML = guestRows.map((guest, index) => {
+    const isPrimary = index === 0;
+    const roleLabel = isPrimary ? "本人" : `家眷 ${index}`;
+    const nameValue = isPrimary ? fieldValue("name") : guest.name;
+    const escapedName = escapeHtml(nameValue);
+    const meatChecked = guest.meal !== "素食" ? " checked" : "";
+    const vegChecked = guest.meal === "素食" ? " checked" : "";
+    const seatYesChecked = guest.childSeat === "是" ? " checked" : "";
+    const seatNoChecked = guest.childSeat !== "是" ? " checked" : "";
+    const noBeefChecked = guest.noBeef === "是" ? " checked" : "";
+    const removeButton = isPrimary
+      ? "<span class=\"guest-card__hint\">姓名由上方同步</span>"
+      : `<button class="guest-card__remove" type="button" data-remove-guest="${index}">移除</button>`;
+
+    return `
+      <article class="guest-card" data-guest-index="${index}">
+        <div class="guest-card__title">
+          <span>${roleLabel}</span>
+          ${removeButton}
+        </div>
+        <div class="guest-card__grid">
+          <label>
+            <span>姓名 <em>*</em></span>
+            <input type="text" name="guestUiName${index}" value="${escapedName}" ${isPrimary ? "readonly aria-describedby=\"name\"" : `data-guest-field="name" data-guest-index="${index}" autocomplete="name"`}>
+          </label>
+          <fieldset class="guest-card__meal">
+            <legend>葷素 <span>*</span></legend>
+            <label><input type="radio" name="guestUiMeal${index}" value="葷食" data-guest-field="meal" data-guest-index="${index}"${meatChecked}> 葷食</label>
+            <label><input type="radio" name="guestUiMeal${index}" value="素食" data-guest-field="meal" data-guest-index="${index}"${vegChecked}> 素食</label>
+          </fieldset>
+          <fieldset class="guest-card__seat">
+            <legend>是否需要兒童椅</legend>
+            <label><input type="radio" name="guestUiChildSeat${index}" value="是" data-guest-field="childSeat" data-guest-index="${index}"${seatYesChecked}> 需要</label>
+            <label><input type="radio" name="guestUiChildSeat${index}" value="否" data-guest-field="childSeat" data-guest-index="${index}"${seatNoChecked}> 不需要</label>
+          </fieldset>
+          <label class="guest-card__nobeef">
+            <input type="checkbox" name="guestUiNoBeef${index}" data-guest-field="noBeef" data-guest-index="${index}"${noBeefChecked}>
+            <span>我不吃牛</span>
+          </label>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  syncGuestHiddenFields();
+}
+
+function validateGuests(pushError) {
+  if (!isAttendingAnyEvent()) return true;
+
+  const details = getGuestDetails();
+  if (details.length < 1 || details.length > 10) {
+    pushError("guestDetails", "出席者需為 1 到 10 位。");
+    return false;
+  }
+
+  const missingName = details.findIndex((guest) => !guest.name);
+  if (missingName >= 0) {
+    pushError("guestDetails", missingName === 0 ? "請先填寫本人姓名。" : `請填寫家眷 ${missingName} 的姓名。`);
+    return false;
+  }
+
+  const invalidMeal = details.findIndex((guest) => !["葷食", "素食"].includes(guest.meal));
+  if (invalidMeal >= 0) {
+    pushError("guestDetails", `請選擇${invalidMeal === 0 ? "本人" : `家眷 ${invalidMeal}`}的葷素。`);
+    return false;
+  }
+
+  const invalidChildSeat = details.findIndex((guest) => !["是", "否"].includes(guest.childSeat));
+  if (invalidChildSeat >= 0) {
+    pushError("guestDetails", `請選擇${invalidChildSeat === 0 ? "本人" : `家眷 ${invalidChildSeat}`}是否需要兒童椅。`);
+    return false;
+  }
+
+  return true;
+}
+
 function validateForm() {
   clearErrors();
   const errors = [];
   const pushError = (name, message) => {
     errors.push(name);
-    setFieldError(name, message);
+    if (name === "guestDetails") {
+      setGuestError(message);
+    } else {
+      setFieldError(name, message);
+    }
   };
 
   if (!fieldValue("name")) pushError("name", "請填寫姓名。");
@@ -206,34 +557,21 @@ function validateForm() {
     pushError("phone", "請填寫可聯絡的電話號碼。");
   }
 
-  if (!fieldValue("ceremony")) pushError("ceremony", "請選擇是否出席證婚儀式。");
-  if (!fieldValue("banquet")) pushError("banquet", "請選擇是否出席午宴。");
+  syncAttendancePlan();
+  if (!fieldValue("attendancePlan")) pushError("attendancePlan", "請選擇出席安排。");
 
-  const guests = Number(fieldValue("guests"));
   if (isAttendingAnyEvent()) {
-    if (!Number.isInteger(guests) || guests < 1 || guests > 10) {
-      pushError("guests", "出席人數需為 1 到 10 人。");
-    }
+    validateGuests(pushError);
   } else if (isNotAttendingAllEvents()) {
     guestsInput.value = "0";
-  }
-
-  const vegetarianCount = Number(fieldValue("vegetarianCount") || 0);
-  if (!Number.isInteger(vegetarianCount) || vegetarianCount < 0 || vegetarianCount > Math.max(10, guests)) {
-    pushError("vegetarianCount", "素食人數需為 0 到 10 人。");
-  } else if (isAttendingAnyEvent() && vegetarianCount > guests) {
-    pushError("vegetarianCount", "素食人數不可超過出席人數。");
-  }
-
-  if (fieldValue("childSeatNeed") === "需要") {
-    const childSeatCount = Number(fieldValue("childSeatCount"));
-    if (!Number.isInteger(childSeatCount) || childSeatCount < 1 || childSeatCount > 5) {
-      pushError("childSeatCount", "請填寫 1 到 5 張兒童椅。");
-    }
+    vegetarianCountInput.value = "0";
+    mealInput.value = "";
+    allergyInput.value = "";
+    guestDetailsInput.value = "";
   }
 
   if (errors.length) {
-    const firstField = form.elements[errors[0]];
+    const firstField = errors[0] === "guestDetails" ? guestList.querySelector("input") : form.elements[errors[0]];
     const firstNode = firstField instanceof RadioNodeList ? [...firstField][0] : firstField;
     if (firstNode) {
       firstNode.focus({ preventScroll: true });
@@ -247,20 +585,86 @@ function validateForm() {
 }
 
 function syncConditionalFields() {
-  const needsSeat = fieldValue("childSeatNeed") === "需要";
-  childSeatCountField.classList.toggle("is-hidden", !needsSeat);
-  document.getElementById("childSeatCount").disabled = !needsSeat;
+  syncAttendancePlan();
+  const attending = isAttendingAnyEvent();
+
+  attendingOnlyFields.forEach((node) => {
+    node.classList.toggle("is-hidden", !attending);
+    node.querySelectorAll("input, select, textarea, button").forEach((field) => {
+      if (field.id === "addGuest") return;
+      field.disabled = !attending;
+    });
+  });
 
   if (isNotAttendingAllEvents()) {
     guestsInput.value = "0";
-    guestsInput.disabled = true;
+    vegetarianCountInput.value = "0";
+    mealInput.value = "";
+    allergyInput.value = "";
+    childSeatNeedInput.value = "不需要";
+    childSeatCountInput.value = "0";
+    guestDetailsInput.value = "";
   } else {
-    guestsInput.disabled = false;
-    if (Number(guestsInput.value) < 1) guestsInput.value = "1";
+    renderGuestList();
   }
 }
 
 form.addEventListener("change", syncConditionalFields);
+form.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target.id === "name") {
+    renderGuestList();
+    syncConditionalFields();
+    return;
+  }
+  if (target.dataset.guestField) {
+    const index = Number(target.dataset.guestIndex);
+    const guest = guestRows[index];
+    if (!guest) return;
+    guest[target.dataset.guestField] = readGuestFieldValue(target);
+    syncGuestHiddenFields();
+    return;
+  }
+  syncConditionalFields();
+});
+guestList.addEventListener("change", (event) => {
+  const target = event.target;
+  if (!target.dataset.guestField) return;
+  const index = Number(target.dataset.guestIndex);
+  const guest = guestRows[index];
+  if (!guest) return;
+  guest[target.dataset.guestField] = readGuestFieldValue(target);
+  syncGuestHiddenFields();
+});
+guestList.addEventListener("click", (event) => {
+  const removeIndex = event.target.dataset.removeGuest;
+  if (!removeIndex) return;
+  const index = Number(removeIndex);
+  if (index > 0) {
+    guestRows.splice(index, 1);
+    renderGuestList();
+    syncConditionalFields();
+  }
+});
+addGuestButton.addEventListener("click", () => {
+  if (guestRows.length >= 10) {
+    setGuestError("最多可填寫 10 位出席者。");
+    return;
+  }
+  guestRows.push({
+    id: nextGuestId++,
+    role: "家眷",
+    name: "",
+    meal: "葷食",
+    noBeef: "否",
+    childSeat: "否",
+  });
+  renderGuestList();
+  syncConditionalFields();
+  const newCard = guestList.querySelector(`[data-guest-index="${guestRows.length - 1}"] input[data-guest-field="name"]`);
+  if (newCard) newCard.focus();
+});
+renderGuestList();
 syncConditionalFields();
 
 function buildHiddenField(name, value) {
@@ -358,6 +762,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   if (!validateForm()) return;
+  syncGuestHiddenFields();
 
   const submitButton = form.querySelector("button[type='submit']");
   const formData = new FormData(form);
@@ -374,7 +779,9 @@ form.addEventListener("submit", async (event) => {
   try {
     await submitWithIframe(formData);
     form.reset();
+    guestRows = [{ id: 0, role: "本人", name: "", meal: "葷食", noBeef: "否", childSeat: "否" }];
     guestsInput.value = "1";
+    renderGuestList();
     syncConditionalFields();
     setStatus("已收到你的回覆，謝謝你。");
   } catch (error) {
@@ -424,10 +831,12 @@ async function applyTestView() {
     scrollToRsvp();
     document.getElementById("name").value = "截圖測試";
     document.getElementById("phone").value = "0912345678";
-    form.querySelector("input[name='ceremony'][value='出席']").checked = true;
-    form.querySelector("input[name='banquet'][value='出席']").checked = true;
-    document.getElementById("guests").value = "2";
-    document.getElementById("vegetarianCount").value = "1";
+    form.querySelector("input[name='attendancePlan'][value='ceremony_banquet']").checked = true;
+    guestRows = [
+      { id: 0, role: "本人", name: "截圖測試", meal: "葷食", noBeef: "否", childSeat: "否" },
+      { id: nextGuestId++, role: "家眷", name: "同行家人", meal: "素食", noBeef: "是", childSeat: "是" },
+    ];
+    renderGuestList();
     syncConditionalFields();
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   }
