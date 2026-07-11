@@ -413,6 +413,7 @@ main {
   margin: 0;
   overflow: hidden;
   border-radius: 6px 16px 16px 6px;
+  background: var(--paper);
   transform-origin: left center;
   transform: rotateY(0deg);
   backface-visibility: hidden;
@@ -425,8 +426,10 @@ main {
   transform: rotateY(-165deg);
 }
 
+/* 相簿照片完整呈現，不裁切 */
 .album__page img {
-  object-position: center 25%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .album__nav {
@@ -650,6 +653,12 @@ main {
   padding: 0;
 }
 
+/* 由 SITE_CONFIG 寫入的文字用 
+ 斷行，需要 pre-line 才會生效 */
+[data-config] {
+  white-space: pre-line;
+}
+
 /* 時間軸置中堆疊：時間在上、標題在中、說明在下，不畫軸線 */
 .timeline li {
   padding: 0 0 24px;
@@ -661,9 +670,9 @@ main {
 
 .timeline time {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: var(--sand);
-  font-size: var(--text-meta);
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -1384,5 +1393,59 @@ footer p {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+}
+
+/* 送出中的小動畫：一張票券從表單飛出去 */
+.flying-ticket {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  top: 62%;
+  width: 220px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  color: var(--plum);
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: linear-gradient(158deg, #fdfaf4, #f1ebe2);
+  box-shadow: 0 20px 40px -18px rgba(59, 48, 80, 0.55);
+  transform: translate(-50%, -50%);
+  animation: ticket-fly 2s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+.flying-ticket span {
+  display: block;
+  margin-top: 4px;
+  color: var(--sand);
+  font-size: var(--text-meta);
+  letter-spacing: 0.24em;
+}
+
+@keyframes ticket-fly {
+  0% {
+    transform: translate(-50%, -50%) scale(0.6) rotate(-4deg);
+    opacity: 0;
+  }
+  18% {
+    transform: translate(-50%, -50%) scale(1) rotate(-2deg);
+    opacity: 1;
+  }
+  38% {
+    transform: translate(-50%, -58%) scale(1) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(120%, -320%) scale(0.35) rotate(22deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flying-ticket {
+    animation: none;
+    opacity: 0;
   }
 }

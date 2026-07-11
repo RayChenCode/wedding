@@ -6,15 +6,15 @@ const SITE_CONFIG = {
   timeDisplay: "星期六 · 10:30 簽到 · 11:00 證婚 · 12:00 午宴",
   venueName: "CHALET V",
   venueAddress: "104 臺北市中山區成功里植福路 8 號",
-  entranceNote: "入口於典華停車場後方木門處，抵達後請依現場指引入場。",
-  parkingNote: "賓客可享典華停車場 4 小時免費停車；車位先到先停，停滿為主。婚禮桌上會提供停車折抵 QR code，請自行掃碼折抵。",
-  transitNote: "搭乘捷運可由文湖線劍南路站或大直站一帶轉乘步行/計程車前往；自行開車請導航至植福路 8 號或典華停車場。",
+  entranceNote: "入口於典華停車場後方木門處\n抵達後請依現場指引入場",
+  parkingNote: "大直典華 B2 停車場 車位有限\n賓客可享 4 小時免費停車\n鄰近另有收費停車場",
+  transitNote: "捷運文湖線 劍南路站 2 號出口\n步行約 1 分鐘即可抵達\n公車可搭至捷運劍南路站 步行 3 分鐘",
   venueLatLng: "25.0837339,121.5550552",
   mapUrl: "https://maps.app.goo.gl/ew2wu86Gp4oGTyzo9",
   mapEmbedUrl: "https://www.google.com/maps?q=25.0837339,121.5550552&hl=zh-TW&z=17&output=embed",
   googleDirectionsUrl: "https://www.google.com/maps/dir/?api=1&destination=25.0837339%2C121.5550552",
-  appleDirectionsUrl: "https://maps.apple.com/?daddr=25.0837339,121.5550552&dirflg=d",
-  rsvpDeadline: "請於 2026/07/31 前完成回覆，方便我們安排座位與餐點。",
+  parkingMapUrl: "https://maps.app.goo.gl/6E2q6666aibWaJdCA",
+  rsvpDeadline: "請於 2026/07/31 前完成回覆\n方便我們安排座位與餐點",
   legacyIframeLoadFallback: true
 };
 
@@ -46,18 +46,6 @@ document.querySelectorAll("[data-config-src]").forEach((node) => {
 
 const COPY_FEEDBACK_MS = 1800;
 const LEGACY_FALLBACK_DELAY_MS = 8000;
-const isAppleDevice = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
-
-if (isAppleDevice) {
-  const google = document.querySelector('[data-nav="google"]');
-  const apple = document.querySelector('[data-nav="apple"]');
-  if (google && apple) {
-    google.classList.remove("is-primary");
-    apple.classList.add("is-primary");
-    apple.parentNode.insertBefore(apple, google);
-  }
-}
-
 const copyButton = document.getElementById("copy-address");
 
 if (copyButton) {
@@ -577,7 +565,7 @@ function validateForm() {
       firstNode.focus({ preventScroll: true });
       firstNode.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-    setStatus("請確認上方欄位後再送出。", true);
+    setStatus("請確認上方欄位後再送出", true);
     return false;
   }
 
@@ -751,13 +739,38 @@ function submitWithIframe(formData) {
   });
 }
 
+const TICKET_FLIGHT_MS = 2000;
+
+/**
+ * 送出成功後的小動畫：一張票券飛出畫面。
+ * 後端通常 0.1 秒就回來了，這裡固定演完 2 秒再往下捲，讓回饋看得見。
+ */
+function flyTicketAway() {
+  if (prefersReducedMotion.matches) {
+    return Promise.resolve();
+  }
+
+  const ticket = document.createElement("div");
+  ticket.className = "flying-ticket";
+  ticket.setAttribute("aria-hidden", "true");
+  ticket.innerHTML = '回覆已送出<span>THANK YOU</span>';
+  document.body.appendChild(ticket);
+
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      ticket.remove();
+      resolve();
+    }, TICKET_FLIGHT_MS);
+  });
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (isSubmitting) return;
 
   if (!SITE_CONFIG.appsScriptUrl.startsWith("https://script.google.com/macros/s/") || !SITE_CONFIG.appsScriptUrl.endsWith("/exec")) {
-    setStatus("表單後端網址設定不完整，請先確認 Apps Script Web App URL。", true);
+    setStatus("表單後端網址設定不完整 請先確認 Apps Script Web App URL", true);
     return;
   }
 
@@ -774,7 +787,7 @@ form.addEventListener("submit", async (event) => {
 
   isSubmitting = true;
   submitButton.disabled = true;
-  setStatus("正在送出回覆...");
+  setStatus("正在送出回覆");
 
   try {
     await submitWithIframe(formData);
@@ -783,9 +796,13 @@ form.addEventListener("submit", async (event) => {
     guestsInput.value = "1";
     renderGuestList();
     syncConditionalFields();
-    setStatus("已收到你的回覆，謝謝你。");
+    setStatus("已收到你的回覆 謝謝你");
+    // 動畫不擋住表單解鎖：票券飛完 2 秒後才把畫面帶到交通資訊
+    flyTicketAway().then(() => {
+      document.getElementById("traffic")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   } catch (error) {
-    setStatus("送出失敗或逾時，請稍後再試。", true);
+    setStatus("送出失敗或逾時 請稍後再試", true);
   } finally {
     isSubmitting = false;
     submitButton.disabled = false;

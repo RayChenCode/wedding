@@ -54,6 +54,8 @@
         assert("album prev returns to page 1", doc.querySelector("[data-album-current]").textContent === "1");
 
         assert("invitation ticket links to the rsvp form", doc.querySelector(".ticket").getAttribute("href") === "#rsvp");
+        assert("rsvp section uses the invitation wording", doc.querySelector("#rsvp .section-title").textContent.trim() === "邀請函");
+        assert("apple maps button is gone", !doc.querySelector('[data-nav="apple"]'));
         assert("schedule shows the new title", doc.querySelector("#schedule .section-title").textContent.trim() === "Our Wedding Day");
         assert("redundant chinese section headings are gone", !doc.body.innerText.includes("活動流程") && !doc.body.innerText.includes("交通與停車"));
         assert("sections are centred", getComputedStyle(doc.querySelector("#schedule")).textAlign === "center");
