@@ -1,27 +1,55 @@
 const SPREADSHEET_ID = "1voXmpkEP9IWwU3OPWjYzK-gXRI6chlp-kQ7fReloNfE";
-const SHEET_NAME = "工作表1";
+const SHEET_RESPONSES = "回覆";
+const SHEET_GUESTS = "出席者";
+const SHEET_STATS = "統計";
 const MAX_TEXT_LENGTH = 1000;
+const MAX_JSON_LENGTH = 8000;
 const MAX_GUESTS = 10;
 
-const HEADERS = [
+// 一筆回覆一列，看得到是誰送的
+const RESPONSE_HEADERS = [
+  "回覆編號",
   "建立時間",
   "姓名",
   "手機",
-  "是否出席證婚",
-  "是否出席午宴",
+  "出席證婚",
+  "出席午宴",
   "出席人數",
-  "飲食需求",
   "素食人數",
-  "同行賓客明細",
-  "特殊飲食",
-  "是否需要兒童椅",
+  "不吃牛人數",
   "兒童椅數量",
-  "交通需求",
   "祝福留言",
   "前端送出時間",
   "來源",
   "網站版本",
   "User Agent"
+];
+
+// 一人一列，統計就靠這張：列數＝實際出席人數
+const GUEST_HEADERS = [
+  "回覆編號",
+  "建立時間",
+  "出席者姓名",
+  "身分",
+  "聯絡人",
+  "聯絡手機",
+  "葷素",
+  "不吃牛",
+  "需要兒童椅",
+  "出席證婚",
+  "出席午宴"
+];
+
+const STATS_ROWS = [
+  ["總出席人數", "=COUNTA('出席者'!C2:C)"],
+  ["出席證婚人數", "=COUNTIF('出席者'!J2:J,\"出席\")"],
+  ["出席午宴人數", "=COUNTIF('出席者'!K2:K,\"出席\")"],
+  ["葷食人數", "=COUNTIF('出席者'!G2:G,\"葷食\")"],
+  ["素食人數", "=COUNTIF('出席者'!G2:G,\"素食\")"],
+  ["不吃牛人數", "=COUNTIF('出席者'!H2:H,\"是\")"],
+  ["兒童椅數量", "=COUNTIF('出席者'!I2:I,\"是\")"],
+  ["回覆筆數", "=COUNTA('回覆'!A2:A)"],
+  ["不出席筆數", "=COUNTIF('回覆'!G2:G,0)"]
 ];
 
 const ALLOWED_FIELDS = [
@@ -31,13 +59,7 @@ const ALLOWED_FIELDS = [
   "ceremony",
   "banquet",
   "guests",
-  "meal",
-  "vegetarianCount",
   "guestDetails",
-  "allergy",
-  "childSeatNeed",
-  "childSeatCount",
-  "transport",
   "message",
   "submittedAtClient",
   "source",
@@ -67,47 +89,76 @@ function doPost(e) {
     lock.waitLock(10000);
 
     try {
-      const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-      let sheet = spreadsheet.getSheetByName(SHEET_NAME);
-      if (!sheet) {
-        sheet = spreadsheet.insertSheet(SHEET_NAME);
-      }
-
-      ensureHeaders(sheet);
-      sheet.appendRow([
-        new Date(),
-        record.name,
-        record.phone,
-        record.ceremony,
-        record.banquet,
-        record.guests,
-        record.meal,
-        record.vegetarianCount,
-        record.guestDetailsText,
-        record.allergy,
-        record.childSeatNeed,
-        record.childSeatCount,
-        record.transport,
-        record.message,
-        record.submittedAtClient,
-        record.source,
-        record.siteVersion,
-        record.userAgent
-      ]);
+      writeRecord(record);
     } finally {
       lock.releaseLock();
     }
 
-    return htmlResponse({ ok: true });
+    return htmlResponse({ ok: true, responseId: record.responseId });
   } catch (error) {
     return htmlResponse({ ok: false, error: String(error) });
   }
 }
 
+function writeRecord(record) {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const responses = ensureSheet(spreadsheet, SHEET_RESPONSES, RESPONSE_HEADERS);
+  const guests = ensureSheet(spreadsheet, SHEET_GUESTS, GUEST_HEADERS);
+  ensureStatsSheet(spreadsheet);
+
+  const createdAt = new Date();
+
+  responses.appendRow([
+    record.responseId,
+    createdAt,
+    record.name,
+    record.phone,
+    record.ceremony,
+    record.banquet,
+    record.guestDetails.length,
+    record.guestDetails.filter(function (guest) { return guest.meal === "素食"; }).length,
+    record.guestDetails.filter(function (guest) { return guest.noBeef === "是"; }).length,
+    record.guestDetails.filter(function (guest) { return guest.childSeat === "是"; }).length,
+    record.message,
+    record.submittedAtClient,
+    record.source,
+    record.siteVersion,
+    record.userAgent
+  ]);
+
+  // 不出席的回覆不寫任何出席者列，「出席者」的列數才會等於真實出席人數
+  if (!record.guestDetails.length) {
+    return;
+  }
+
+  const rows = record.guestDetails.map(function (guest) {
+    return [
+      record.responseId,
+      createdAt,
+      guest.name,
+      guest.role,
+      record.name,
+      record.phone,
+      guest.meal,
+      guest.noBeef,
+      guest.childSeat,
+      record.ceremony,
+      record.banquet
+    ];
+  });
+
+  guests
+    .getRange(guests.getLastRow() + 1, 1, rows.length, GUEST_HEADERS.length)
+    .setValues(rows);
+}
+
 function filterParams(params) {
   const result = {};
-  ALLOWED_FIELDS.forEach((field) => {
-    result[field] = sanitize(params[field]);
+  ALLOWED_FIELDS.forEach(function (field) {
+    // guestDetails 是 JSON，不能被 sanitize 的長度上限截斷，否則整包解析不出來
+    result[field] = field === "guestDetails"
+      ? String(params[field] || "").slice(0, MAX_JSON_LENGTH)
+      : sanitize(params[field]);
   });
   return result;
 }
@@ -116,29 +167,14 @@ function buildRecord(params) {
   const ceremony = normalizeAttendance(params.ceremony);
   const banquet = normalizeAttendance(params.banquet);
   const attending = ceremony === "出席" || banquet === "出席";
-  const guestDetails = attending ? normalizeGuestDetails(params.guestDetails, params) : [];
-  const guests = attending ? guestDetails.length : 0;
-  const vegetarianCount = guestDetails.filter((guest) => guest.meal === "素食").length;
-  const childSeatCount = guestDetails.filter((guest) => guest.childSeat === "是").length;
-  const childSeatNeed = childSeatCount > 0 ? "需要" : "不需要";
-  const allergy = attending
-    ? guestDetails.filter((guest) => guest.allergy).map((guest) => guest.name + "：" + guest.allergy).join("；")
-    : sanitize(params.allergy);
 
   return {
+    responseId: Utilities.getUuid().slice(0, 8),
     name: sanitize(params.name),
     phone: sanitize(params.phone),
-    ceremony,
-    banquet,
-    guests,
-    meal: deriveMealSummary(guestDetails, params.meal),
-    vegetarianCount,
-    guestDetails,
-    guestDetailsText: formatGuestDetails(guestDetails),
-    allergy: sanitize(allergy),
-    childSeatNeed,
-    childSeatCount,
-    transport: sanitize(params.transport),
+    ceremony: ceremony,
+    banquet: banquet,
+    guestDetails: attending ? parseGuestDetails(params.guestDetails) : [],
     message: sanitize(params.message),
     submittedAtClient: sanitize(params.submittedAtClient),
     source: sanitize(params.source),
@@ -150,56 +186,21 @@ function buildRecord(params) {
 function validateRecord(record) {
   const errors = [];
   const phone = record.phone.replace(/[\s\-()#]/g, "");
+  const attending = record.ceremony === "出席" || record.banquet === "出席";
 
   if (!record.name) errors.push("missing_name");
   if (!record.phone || !/^\+?\d{8,15}$/.test(phone)) errors.push("invalid_phone");
   if (!record.ceremony) errors.push("missing_ceremony");
   if (!record.banquet) errors.push("missing_banquet");
-  if ((record.ceremony === "出席" || record.banquet === "出席") && (!Number.isInteger(record.guests) || record.guests < 1 || record.guests > MAX_GUESTS)) {
+  if (attending && (record.guestDetails.length < 1 || record.guestDetails.length > MAX_GUESTS)) {
     errors.push("invalid_guests");
   }
-  record.guestDetails.forEach((guest, index) => {
+
+  record.guestDetails.forEach(function (guest, index) {
     if (!guest.name) errors.push("missing_guest_name_" + index);
-    if (guest.meal !== "葷食" && guest.meal !== "素食") errors.push("invalid_guest_meal_" + index);
-    if (guest.childSeat !== "是" && guest.childSeat !== "否") errors.push("invalid_guest_child_seat_" + index);
   });
 
   return errors;
-}
-
-function ensureHeaders(sheet) {
-  const current = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
-  const mismatch = HEADERS.some((header, index) => current[index] !== header);
-  if (mismatch) {
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-  }
-  sheet.setFrozenRows(1);
-}
-
-function normalizeAttendance(value) {
-  return value === "出席" || value === "不出席" ? value : "";
-}
-
-function normalizeMeal(value) {
-  return ["葷食", "素食", "葷素皆有", "特殊飲食需求"].includes(value) ? value : "葷食";
-}
-
-function normalizeGuestDetails(value, params) {
-  const parsed = parseGuestDetails(value);
-  if (parsed.length) return parsed;
-
-  const fallbackMeal = normalizeMeal(params.meal) === "素食" ? "素食" : "葷食";
-  if (params.name) {
-    return [{
-      role: "本人",
-      name: sanitize(params.name),
-      meal: fallbackMeal,
-      noBeef: "否",
-      allergy: sanitize(params.allergy),
-      childSeat: "否"
-    }];
-  }
-  return [];
 }
 
 function parseGuestDetails(value) {
@@ -207,40 +208,49 @@ function parseGuestDetails(value) {
   try {
     const rawGuests = JSON.parse(String(value));
     if (!Array.isArray(rawGuests)) return [];
-    return rawGuests.slice(0, MAX_GUESTS).map((guest, index) => ({
-      role: index === 0 ? "本人" : "家眷",
-      name: sanitize(guest && guest.name),
-      meal: guest && guest.meal === "素食" ? "素食" : "葷食",
-      noBeef: guest && guest.noBeef === "是" ? "是" : "否",
-      allergy: guest && guest.noBeef === "是" ? "不吃牛" : sanitize(guest && guest.allergy),
-      childSeat: guest && guest.childSeat === "是" ? "是" : "否"
-    }));
+    return rawGuests.slice(0, MAX_GUESTS).map(function (guest, index) {
+      return {
+        role: index === 0 ? "本人" : "家眷",
+        name: sanitize(guest && guest.name),
+        meal: guest && guest.meal === "素食" ? "素食" : "葷食",
+        noBeef: guest && guest.noBeef === "是" ? "是" : "否",
+        childSeat: guest && guest.childSeat === "是" ? "是" : "否"
+      };
+    });
   } catch (error) {
     return [];
   }
 }
 
-function deriveMealSummary(guestDetails, fallback) {
-  if (!guestDetails.length) return normalizeMeal(fallback || "葷食");
-  const vegetarianCount = guestDetails.filter((guest) => guest.meal === "素食").length;
-  if (vegetarianCount === guestDetails.length) return "素食";
-  if (vegetarianCount === 0) return "葷食";
-  return "葷素皆有";
+function ensureSheet(spreadsheet, name, headers) {
+  let sheet = spreadsheet.getSheetByName(name);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(name);
+  }
+
+  const current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+  const mismatch = headers.some(function (header, index) {
+    return current[index] !== header;
+  });
+  if (mismatch) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  sheet.setFrozenRows(1);
+  return sheet;
 }
 
-function formatGuestDetails(guestDetails) {
-  return guestDetails.map((guest, index) => {
-    const role = index === 0 ? "本人" : "家眷" + index;
-    const allergy = guest.allergy ? "；" + sanitize(guest.allergy) : "";
-    const childSeat = guest.childSeat === "是" ? "；需要兒童椅" : "";
-    return (index + 1) + ". " + role + "：" + sanitize(guest.name) + "；" + guest.meal + allergy + childSeat;
-  }).join("\n");
+// 只建立一次，之後不覆寫，免得蓋掉使用者自己加的公式
+function ensureStatsSheet(spreadsheet) {
+  if (spreadsheet.getSheetByName(SHEET_STATS)) {
+    return;
+  }
+  const sheet = spreadsheet.insertSheet(SHEET_STATS);
+  sheet.getRange(1, 1, STATS_ROWS.length, 2).setValues(STATS_ROWS);
+  sheet.setColumnWidth(1, 160);
 }
 
-function clampInteger(value, min, max, fallback) {
-  const number = Number(value);
-  if (!Number.isInteger(number) || number < min || number > max) return fallback;
-  return number;
+function normalizeAttendance(value) {
+  return value === "出席" || value === "不出席" ? value : "";
 }
 
 function sanitize(value) {

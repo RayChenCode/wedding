@@ -1,5 +1,5 @@
 const SITE_CONFIG = {
-  version: "2026-07-09-rsvp-v2",
+  version: "2026-07-13-rsvp-v3",
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbzdbZC5vQkFboX_W12WJ1HukfJEf910LTfAYBIDyeeRCI2VmGu7kAE-BTZnYWyxP5Dv5Q/exec",
   weddingDate: "2026-10-24T10:30:00+08:00",
   dateDisplay: "2026.10.24",
@@ -340,13 +340,8 @@ const guestList = document.getElementById("guestList");
 const addGuestButton = document.getElementById("addGuest");
 const guestCountSummary = document.getElementById("guestCountSummary");
 const guestDetailsInput = document.getElementById("guestDetails");
-const vegetarianCountInput = document.getElementById("vegetarianCount");
-const mealInput = document.getElementById("meal");
-const allergyInput = document.getElementById("allergy");
 const ceremonyInput = document.getElementById("ceremony");
 const banquetInput = document.getElementById("banquet");
-const childSeatNeedInput = document.getElementById("childSeatNeed");
-const childSeatCountInput = document.getElementById("childSeatCount");
 const attendingOnlyFields = [...form.querySelectorAll("[data-attending-only]")];
 
 let nextGuestId = 1;
@@ -449,34 +444,18 @@ function getGuestDetails() {
     name: index === 0 ? fieldValue("name") : String(guest.name || "").trim(),
     meal: guest.meal === "素食" ? "素食" : "葷食",
     noBeef: guest.noBeef === "是" ? "是" : "否",
-    allergy: guest.noBeef === "是" ? "不吃牛" : "",
     childSeat: guest.childSeat === "是" ? "是" : "否",
   }));
 }
 
-function deriveMealSummary(details) {
-  if (!details.length) return "";
-  const vegetarianCount = details.filter((guest) => guest.meal === "素食").length;
-  if (vegetarianCount === details.length) return "素食";
-  if (vegetarianCount === 0) return "葷食";
-  return "葷素皆有";
-}
-
+/**
+ * guestDetails JSON 是唯一真相：素食、不吃牛、兒童椅的統計一律由後端從這包算，
+ * 前端不再送重複的彙總欄位，免得兩邊算法不同步。
+ */
 function syncGuestHiddenFields() {
   const details = getGuestDetails();
-  const vegetarianCount = details.filter((guest) => guest.meal === "素食").length;
-  const allergySummary = details
-    .filter((guest) => guest.allergy)
-    .map((guest) => `${guest.name || guest.role}：${guest.allergy}`)
-    .join("；");
-  const childSeatCount = details.filter((guest) => guest.childSeat === "是").length;
 
   guestsInput.value = String(details.length);
-  vegetarianCountInput.value = String(vegetarianCount);
-  mealInput.value = deriveMealSummary(details);
-  allergyInput.value = allergySummary;
-  childSeatNeedInput.value = childSeatCount > 0 ? "需要" : "不需要";
-  childSeatCountInput.value = String(childSeatCount);
   guestDetailsInput.value = details.length ? JSON.stringify(details) : "";
 
   if (guestCountSummary) {
@@ -602,9 +581,6 @@ function validateForm() {
     validateGuests(pushError);
   } else if (isNotAttendingAllEvents()) {
     guestsInput.value = "0";
-    vegetarianCountInput.value = "0";
-    mealInput.value = "";
-    allergyInput.value = "";
     guestDetailsInput.value = "";
   }
 
@@ -636,11 +612,6 @@ function syncConditionalFields() {
 
   if (isNotAttendingAllEvents()) {
     guestsInput.value = "0";
-    vegetarianCountInput.value = "0";
-    mealInput.value = "";
-    allergyInput.value = "";
-    childSeatNeedInput.value = "不需要";
-    childSeatCountInput.value = "0";
     guestDetailsInput.value = "";
   } else {
     renderGuestList();

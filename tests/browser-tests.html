@@ -107,11 +107,13 @@
         click(doc, "input[name='guestUiChildSeat1'][value='是']");
         click(doc, "input[name='guestUiNoBeef1']");
         await wait(200);
+        const details = JSON.parse(doc.querySelector("#guestDetails").value);
         assert("guest count is derived from cards", doc.querySelector("#guests").value === "2");
-        assert("vegetarian count is derived from cards", doc.querySelector("#vegetarianCount").value === "1");
-        assert("guest details serialized", doc.querySelector("#guestDetails").value.includes("測試家人"));
-        assert("child seat count is derived from guest row", doc.querySelector("#childSeatCount").value === "1");
-        assert("no-beef checkbox feeds allergy field", doc.querySelector("#allergy").value.includes("不吃牛"));
+        assert("guest details serialized", details.some((guest) => guest.name === "測試家人"));
+        assert("vegetarian flag is on the guest row", details.filter((guest) => guest.meal === "素食").length === 1);
+        assert("child seat flag is on the guest row", details.filter((guest) => guest.childSeat === "是").length === 1);
+        assert("no-beef flag is on the guest row", details.filter((guest) => guest.noBeef === "是").length === 1);
+        assert("legacy summary fields are gone", !doc.querySelector("#meal") && !doc.querySelector("#allergy") && !doc.querySelector("#vegetarianCount") && !doc.querySelector("#childSeatCount"));
 
         input(doc, "#message", "=測試公式注入 😊");
         doc.querySelector("#rsvpForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
